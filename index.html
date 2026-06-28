@@ -1,0 +1,1468 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>نظام الشكاوى والمقترحات - كلية الهندسة جامعة المنصورة</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0a1628; --navy-mid: #102040; --blue: #1a3a6b; --royal: #1e4d99;
+    --gold: #c8a94a; --gold-light: #e8c96a; --gold-pale: #f5e9c0;
+    --white: #ffffff; --gray-light: #f4f6fa; --gray: #8a9ab5;
+    --red: #c0392b; --green: #1a7a4a; --green-light: #27ae60;
+    --shadow: 0 8px 32px rgba(10,22,40,0.18);
+    --shadow-gold: 0 4px 24px rgba(200,169,74,0.25); --radius: 16px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Cairo','Tajawal',sans-serif; background:var(--navy); color:var(--white); min-height:100vh; overflow-x:hidden; }
+  .bg-canvas { position:fixed; inset:0; z-index:0; pointer-events:none;
+    background:radial-gradient(ellipse 80% 60% at 20% 10%,rgba(30,77,153,0.35) 0%,transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 90%,rgba(200,169,74,0.12) 0%,transparent 50%),
+    linear-gradient(160deg,#0a1628 0%,#102040 50%,#0d1f3c 100%); }
+  .bg-canvas::before { content:''; position:absolute; inset:0;
+    background-image:radial-gradient(circle at 15% 25%,rgba(30,77,153,0.15) 0%,transparent 30%),
+    radial-gradient(circle at 85% 75%,rgba(200,169,74,0.08) 0%,transparent 25%);
+    animation:bgPulse 8s ease-in-out infinite alternate; }
+  @keyframes bgPulse { from{opacity:0.5} to{opacity:1} }
+  .bg-grid { position:fixed; inset:0; z-index:0; pointer-events:none; opacity:0.04;
+    background-image:linear-gradient(rgba(200,169,74,1) 1px,transparent 1px),linear-gradient(90deg,rgba(200,169,74,1) 1px,transparent 1px);
+    background-size:60px 60px; }
+
+  /* HEADER */
+  .header { position:relative; z-index:10;
+    background:linear-gradient(135deg,rgba(10,22,40,0.97) 0%,rgba(16,32,64,0.97) 100%);
+    border-bottom:2px solid rgba(200,169,74,0.4); padding:0 2rem; box-shadow:0 4px 30px rgba(0,0,0,0.4); }
+  .header-inner { max-width:1300px; margin:0 auto; display:flex; align-items:center; gap:1.5rem; padding:1.2rem 0; }
+  .header-logo { width:80px; height:80px; border-radius:50%; border:3px solid var(--gold);
+    box-shadow:0 0 20px rgba(200,169,74,0.4),0 0 40px rgba(200,169,74,0.15);
+    object-fit:cover; flex-shrink:0; background:white; padding:3px; animation:logoPulse 3s ease-in-out infinite; }
+  @keyframes logoPulse {
+    0%,100%{box-shadow:0 0 20px rgba(200,169,74,0.4),0 0 40px rgba(200,169,74,0.15)}
+    50%{box-shadow:0 0 30px rgba(200,169,74,0.7),0 0 60px rgba(200,169,74,0.3)} }
+  .header-text { flex:1; }
+  .header-text h1 { font-size:1.5rem; font-weight:900;
+    background:linear-gradient(135deg,var(--gold-light) 0%,var(--gold) 50%,var(--gold-pale) 100%);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; line-height:1.3; }
+  .header-text p { font-size:0.85rem; color:var(--gray); margin-top:2px; }
+  .header-badge { background:linear-gradient(135deg,var(--gold) 0%,var(--gold-light) 100%); color:var(--navy);
+    font-size:0.72rem; font-weight:700; padding:4px 12px; border-radius:20px; white-space:nowrap;
+    box-shadow:var(--shadow-gold); cursor:pointer; transition:all 0.3s; }
+  .header-badge:hover { transform:scale(1.05); }
+
+  /* FIREBASE STATUS */
+  .fb-status { position:fixed; top:12px; left:12px; z-index:999;
+    display:flex; align-items:center; gap:6px; font-size:0.72rem; font-weight:700;
+    background:rgba(10,22,40,0.9); border:1px solid rgba(255,255,255,0.1);
+    padding:5px 12px; border-radius:20px; }
+  .fb-dot { width:8px; height:8px; border-radius:50%; animation:pulse 2s infinite; }
+  .fb-dot.online { background:#27ae60; }
+  .fb-dot.offline { background:#e74c3c; animation:none; }
+  .fb-dot.loading { background:#f39c12; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* SPONSOR & TICKER */
+  .sponsor-banner { position:relative; z-index:10;
+    background:linear-gradient(90deg,rgba(200,169,74,0.08) 0%,rgba(200,169,74,0.15) 50%,rgba(200,169,74,0.08) 100%);
+    border-bottom:1px solid rgba(200,169,74,0.2); text-align:center; padding:10px 2rem;
+    font-size:0.82rem; color:rgba(200,169,74,0.9); }
+  .sponsor-banner span { margin:0 6px; color:var(--gold-light); font-weight:700; }
+  .ticker-wrap { position:relative; z-index:10;
+    background:linear-gradient(90deg,var(--royal),var(--blue),var(--royal));
+    overflow:hidden; height:38px; display:flex; align-items:center; }
+  .ticker-label { background:var(--gold); color:var(--navy); font-weight:800; font-size:0.78rem;
+    padding:0 16px; height:100%; display:flex; align-items:center; white-space:nowrap; flex-shrink:0; z-index:2; }
+  .ticker-track { display:flex; gap:60px; padding-right:100%;
+    animation:tickerScroll 35s linear infinite; white-space:nowrap; font-size:0.8rem; color:rgba(255,255,255,0.9); }
+  @keyframes tickerScroll { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+
+  .main { position:relative; z-index:5; }
+  .view { display:none; }
+  .view.active { display:block; }
+
+  /* PUBLIC NAV */
+  .public-nav { position:relative; z-index:10; display:flex; justify-content:center;
+    background:rgba(10,22,40,0.8); backdrop-filter:blur(10px);
+    border-bottom:1px solid rgba(255,255,255,0.07); padding:0 1rem; }
+  .pnav-item { padding:0.9rem 1.5rem; cursor:pointer; font-size:0.85rem; font-weight:600;
+    color:rgba(255,255,255,0.6); transition:all 0.25s; position:relative; white-space:nowrap; }
+  .pnav-item:hover { color:var(--white); }
+  .pnav-item.active { color:var(--gold-light); }
+  .pnav-item.active::after { content:''; position:absolute; bottom:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,transparent,var(--gold),transparent); }
+
+  /* HERO */
+  .hero-section { max-width:1300px; margin:0 auto; padding:3rem 2rem;
+    display:grid; grid-template-columns:1fr 1.6fr; gap:3rem; align-items:start; }
+  @media(max-width:900px){ .hero-section{grid-template-columns:1fr} .hero-left{display:none} }
+  .hero-left h2 { font-size:2rem; font-weight:900; line-height:1.4;
+    background:linear-gradient(135deg,var(--white) 0%,var(--gold-pale) 100%);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:1rem; }
+  .hero-left p { color:var(--gray); line-height:1.9; font-size:0.93rem; margin-bottom:1.5rem; }
+  .sectors-list { display:flex; flex-direction:column; gap:0.7rem; }
+  .sector-item { display:flex; align-items:center; gap:0.8rem;
+    background:rgba(255,255,255,0.04); border:1px solid rgba(200,169,74,0.15);
+    border-radius:12px; padding:0.9rem 1.1rem; transition:all 0.3s; cursor:default; }
+  .sector-item:hover { background:rgba(200,169,74,0.08); border-color:rgba(200,169,74,0.4); transform:translateX(-4px); }
+  .sector-icon { width:38px; height:38px; border-radius:10px;
+    background:linear-gradient(135deg,var(--gold) 0%,var(--gold-light) 100%);
+    display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0; }
+  .sector-info strong { display:block; font-size:0.88rem; font-weight:700; color:var(--white); }
+  .sector-info span { font-size:0.75rem; color:var(--gray); }
+  .stat-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:0.8rem; margin-top:1.5rem; }
+  .stat-card { background:rgba(30,77,153,0.2); border:1px solid rgba(30,77,153,0.3);
+    border-radius:12px; padding:1rem; text-align:center; transition:all 0.3s; }
+  .stat-card:hover { background:rgba(30,77,153,0.35); transform:translateY(-2px); }
+  .stat-card .num { font-size:1.8rem; font-weight:900;
+    background:linear-gradient(135deg,var(--gold) 0%,var(--gold-light) 100%);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .stat-card .lbl { font-size:0.72rem; color:var(--gray); margin-top:2px; }
+
+  /* FORM CARD */
+  .form-card { background:linear-gradient(145deg,rgba(16,32,64,0.95) 0%,rgba(10,22,40,0.98) 100%);
+    border:1px solid rgba(200,169,74,0.25); border-radius:24px; padding:2.5rem;
+    box-shadow:var(--shadow),0 0 60px rgba(200,169,74,0.05); position:relative; overflow:hidden; }
+  .form-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px;
+    background:linear-gradient(90deg,var(--gold) 0%,var(--gold-light) 50%,var(--gold) 100%); }
+  .form-card-title { font-size:1.3rem; font-weight:800; color:var(--white); margin-bottom:0.4rem; }
+  .form-card-sub { font-size:0.82rem; color:var(--gray); margin-bottom:2rem; }
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem; }
+  .form-row.single { grid-template-columns:1fr; }
+  .form-group { display:flex; flex-direction:column; gap:0.45rem; }
+  .form-group label { font-size:0.8rem; font-weight:600; color:var(--gold-light);
+    display:flex; align-items:center; gap:6px; }
+  .form-group label .req { color:#e74c3c; font-size:1rem; }
+  .form-input,.form-select,.form-textarea { background:rgba(255,255,255,0.05);
+    border:1.5px solid rgba(255,255,255,0.1); border-radius:10px; padding:0.75rem 1rem;
+    color:var(--white); font-family:'Cairo',sans-serif; font-size:0.88rem;
+    transition:all 0.3s; width:100%; outline:none; direction:rtl; }
+  .form-input:focus,.form-select:focus,.form-textarea:focus { border-color:var(--gold);
+    background:rgba(200,169,74,0.06); box-shadow:0 0 0 3px rgba(200,169,74,0.12); }
+  .form-input::placeholder,.form-textarea::placeholder { color:rgba(255,255,255,0.25); }
+  .form-select option { background:var(--navy); color:var(--white); }
+  .form-textarea { min-height:120px; resize:vertical; }
+  .char-count { font-size:0.72rem; color:var(--gray); text-align:left; margin-top:2px; }
+  .type-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:0.6rem; }
+  .type-btn { background:rgba(255,255,255,0.04); border:1.5px solid rgba(255,255,255,0.1);
+    border-radius:10px; padding:0.7rem; cursor:pointer; text-align:center; transition:all 0.25s;
+    color:var(--gray); font-family:'Cairo',sans-serif; font-size:0.8rem; font-weight:600; }
+  .type-btn:hover { border-color:rgba(200,169,74,0.4); color:var(--gold-light); }
+  .type-btn.selected { background:rgba(200,169,74,0.15); border-color:var(--gold); color:var(--gold-light); }
+  .type-btn .tb-icon { font-size:1.3rem; display:block; margin-bottom:4px; }
+  .priority-row { display:flex; gap:0.6rem; flex-wrap:wrap; }
+  .priority-btn { flex:1; min-width:80px; padding:0.5rem; border-radius:8px; cursor:pointer;
+    border:1.5px solid; font-family:'Cairo',sans-serif; font-size:0.77rem; font-weight:700;
+    text-align:center; transition:all 0.25s; }
+  .priority-btn[data-p="low"]{border-color:#27ae60;color:#27ae60;background:transparent}
+  .priority-btn[data-p="medium"]{border-color:#f39c12;color:#f39c12;background:transparent}
+  .priority-btn[data-p="high"]{border-color:#e74c3c;color:#e74c3c;background:transparent}
+  .priority-btn.selected[data-p="low"]{background:rgba(39,174,96,0.15)}
+  .priority-btn.selected[data-p="medium"]{background:rgba(243,156,18,0.15)}
+  .priority-btn.selected[data-p="high"]{background:rgba(231,76,60,0.15)}
+  .submit-btn { width:100%; padding:1rem; border-radius:12px; border:none; cursor:pointer;
+    background:linear-gradient(135deg,var(--gold) 0%,var(--gold-light) 50%,var(--gold) 100%);
+    color:var(--navy); font-family:'Cairo',sans-serif; font-size:1rem; font-weight:900;
+    transition:all 0.3s; margin-top:1.2rem; box-shadow:var(--shadow-gold); position:relative; overflow:hidden; }
+  .submit-btn:hover { transform:translateY(-2px); box-shadow:0 8px 30px rgba(200,169,74,0.5); }
+  .submit-btn:disabled { opacity:0.6; cursor:not-allowed; transform:none; }
+
+  /* MODALS */
+  .modal-overlay { position:fixed; inset:0; z-index:1000; background:rgba(5,10,20,0.88);
+    display:flex; align-items:center; justify-content:center;
+    backdrop-filter:blur(6px); opacity:0; pointer-events:none; transition:all 0.3s; }
+  .modal-overlay.show { opacity:1; pointer-events:all; }
+  .modal-box { background:linear-gradient(145deg,#0d1f3c,#0a1628);
+    border:2px solid rgba(200,169,74,0.4); border-radius:24px; padding:2.5rem;
+    max-width:480px; width:90%; text-align:center;
+    transform:scale(0.8) translateY(20px); transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    box-shadow:var(--shadow),0 0 80px rgba(200,169,74,0.1); }
+  .modal-overlay.show .modal-box { transform:scale(1) translateY(0); }
+  .modal-check { width:80px; height:80px; border-radius:50%;
+    background:linear-gradient(135deg,var(--gold),var(--gold-light));
+    display:flex; align-items:center; justify-content:center; font-size:2rem;
+    margin:0 auto 1.5rem; box-shadow:0 0 40px rgba(200,169,74,0.5);
+    animation:checkPop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.2s both; }
+  @keyframes checkPop { from{transform:scale(0)} to{transform:scale(1)} }
+  .modal-ref { background:rgba(200,169,74,0.1); border:1px solid rgba(200,169,74,0.3);
+    border-radius:12px; padding:1rem; margin:1rem 0;
+    font-size:1.3rem; font-weight:900; color:var(--gold-light); letter-spacing:3px; }
+  .modal-ref small { display:block; font-size:0.75rem; color:var(--gray); font-weight:400; letter-spacing:0; }
+  .modal-btn { background:linear-gradient(135deg,var(--gold),var(--gold-light)); border:none;
+    border-radius:10px; padding:0.8rem 2rem; color:var(--navy); font-family:'Cairo',sans-serif;
+    font-weight:800; font-size:0.9rem; cursor:pointer; margin-top:0.5rem; transition:all 0.3s; }
+  .modal-btn:hover { transform:translateY(-2px); }
+  .modal-track-btn { background:transparent; border:1.5px solid rgba(200,169,74,0.4);
+    border-radius:10px; padding:0.75rem 1.5rem; color:var(--gold-light); font-family:'Cairo',sans-serif;
+    font-weight:600; font-size:0.85rem; cursor:pointer; margin-top:0.5rem; margin-right:0.5rem; transition:all 0.3s; }
+  .modal-track-btn:hover { background:rgba(200,169,74,0.08); }
+
+  /* TRACK */
+  .track-section { max-width:700px; margin:0 auto; padding:3rem 2rem; }
+  .track-card { background:linear-gradient(145deg,rgba(16,32,64,0.95),rgba(10,22,40,0.98));
+    border:1px solid rgba(200,169,74,0.25); border-radius:24px; padding:2.5rem;
+    position:relative; overflow:hidden; }
+  .track-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px;
+    background:linear-gradient(90deg,var(--gold),var(--gold-light),var(--gold)); }
+  .track-result { display:none; margin-top:1.5rem; background:rgba(30,77,153,0.1);
+    border:1px solid rgba(30,77,153,0.2); border-radius:16px; padding:1.5rem; }
+  .track-result.show { display:block; animation:fadeInUp 0.4s ease; }
+  @keyframes fadeInUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+  .status-badge { display:inline-flex; align-items:center; gap:6px;
+    padding:6px 16px; border-radius:20px; font-size:0.8rem; font-weight:700; }
+  .status-new{background:rgba(30,77,153,0.2);color:#5b9bd5;border:1px solid rgba(91,155,213,0.3)}
+  .status-review{background:rgba(243,156,18,0.15);color:#f39c12;border:1px solid rgba(243,156,18,0.3)}
+  .status-done{background:rgba(39,174,96,0.15);color:#27ae60;border:1px solid rgba(39,174,96,0.3)}
+  .status-closed{background:rgba(127,140,141,0.15);color:#95a5a6;border:1px solid rgba(149,165,166,0.3)}
+  .track-detail { display:flex; flex-direction:column; gap:0.8rem; }
+  .track-detail-row { display:flex; gap:1rem; align-items:baseline;
+    border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:0.8rem; }
+  .track-detail-row:last-child { border:none; }
+  .track-detail-row .lbl { font-size:0.78rem; color:var(--gray); min-width:120px; font-weight:600; }
+  .track-detail-row .val { font-size:0.88rem; color:var(--white); font-weight:500; }
+
+  /* ADMIN LOGIN */
+  .admin-login { max-width:440px; margin:0 auto; padding:3rem 2rem; }
+  .login-card { background:linear-gradient(145deg,rgba(16,32,64,0.97),rgba(10,22,40,0.99));
+    border:1px solid rgba(200,169,74,0.3); border-radius:24px; padding:2.5rem;
+    position:relative; overflow:hidden; box-shadow:var(--shadow),0 0 60px rgba(30,77,153,0.15); }
+  .login-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px;
+    background:linear-gradient(90deg,var(--royal),var(--gold),var(--royal)); }
+  .login-logo { width:90px; height:90px; border-radius:50%; border:3px solid var(--gold);
+    margin:0 auto 1.5rem; display:block; background:white; padding:4px; box-shadow:0 0 30px rgba(200,169,74,0.4); }
+  .lock-icon { width:60px; height:60px; border-radius:50%;
+    background:linear-gradient(135deg,var(--royal),var(--blue));
+    display:flex; align-items:center; justify-content:center; font-size:1.5rem;
+    margin:0 auto 1rem; border:2px solid rgba(200,169,74,0.3); }
+  .login-err { background:rgba(192,57,43,0.15); border:1px solid rgba(192,57,43,0.3);
+    border-radius:10px; padding:0.7rem 1rem; font-size:0.82rem; color:#e74c3c;
+    margin-top:0.8rem; display:none; text-align:center; }
+  .login-err.show { display:block; animation:shake 0.4s ease; }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 60%{transform:translateX(6px)} }
+
+  /* ADMIN LAYOUT */
+  .admin-layout { display:flex; min-height:calc(100vh - 180px); }
+  .admin-sidebar { width:260px; flex-shrink:0;
+    background:linear-gradient(180deg,rgba(16,32,64,0.98) 0%,rgba(10,22,40,0.99) 100%);
+    border-left:1px solid rgba(200,169,74,0.15); padding:1.5rem 0;
+    position:sticky; top:0; height:calc(100vh - 180px); overflow-y:auto; }
+  .sidebar-logo { text-align:center; padding:0 1rem 1.5rem;
+    border-bottom:1px solid rgba(200,169,74,0.1); margin-bottom:1rem; }
+  .sidebar-logo img { width:55px; height:55px; border-radius:50%; border:2px solid var(--gold); background:white; padding:2px; }
+  .sidebar-logo p { font-size:0.72rem; color:var(--gray); margin-top:6px; }
+  .sidebar-logo strong { display:block; font-size:0.82rem; color:var(--gold-light); }
+  .sidebar-nav { padding:0 0.75rem; }
+  .nav-section-title { font-size:0.68rem; font-weight:700; color:var(--gray);
+    text-transform:uppercase; letter-spacing:1px; padding:0.8rem 0.8rem 0.4rem; margin-top:0.5rem; }
+  .nav-item { display:flex; align-items:center; gap:0.7rem; padding:0.7rem 0.8rem;
+    border-radius:10px; cursor:pointer; font-size:0.85rem; color:rgba(255,255,255,0.7);
+    transition:all 0.25s; margin-bottom:2px; border:1px solid transparent; }
+  .nav-item:hover { background:rgba(200,169,74,0.08); color:var(--white); border-color:rgba(200,169,74,0.15); }
+  .nav-item.active { background:linear-gradient(135deg,rgba(200,169,74,0.15),rgba(200,169,74,0.08));
+    color:var(--gold-light); border-color:rgba(200,169,74,0.25); font-weight:700; }
+  .nav-item .nav-icon { font-size:1rem; width:22px; text-align:center; }
+  .nav-badge { margin-right:auto; background:var(--red); color:white;
+    font-size:0.68rem; font-weight:700; padding:1px 7px; border-radius:10px; }
+  .admin-content { flex:1; padding:1.5rem 2rem; overflow-y:auto; }
+  .admin-sub-view { display:none; }
+  .admin-sub-view.active { display:block; }
+  .page-title { font-size:1.3rem; font-weight:800; color:var(--white);
+    margin-bottom:1.5rem; display:flex; align-items:center; gap:0.8rem; }
+  .page-title .title-line { width:4px; height:26px; border-radius:3px;
+    background:linear-gradient(180deg,var(--gold),var(--gold-light)); }
+
+  /* KPI */
+  .dash-kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:1.5rem; }
+  @media(max-width:1100px){.dash-kpi-row{grid-template-columns:repeat(2,1fr)}}
+  .kpi-card { background:linear-gradient(145deg,rgba(16,32,64,0.9),rgba(10,22,40,0.95));
+    border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:1.4rem;
+    transition:all 0.3s; position:relative; overflow:hidden; }
+  .kpi-card:hover { transform:translateY(-3px); border-color:rgba(200,169,74,0.2); }
+  .kpi-card::after { content:''; position:absolute; bottom:0; left:0; right:0; height:3px; }
+  .kpi-card:nth-child(1)::after{background:linear-gradient(90deg,var(--gold),var(--gold-light))}
+  .kpi-card:nth-child(2)::after{background:linear-gradient(90deg,#3498db,#5dade2)}
+  .kpi-card:nth-child(3)::after{background:linear-gradient(90deg,#27ae60,#52be80)}
+  .kpi-card:nth-child(4)::after{background:linear-gradient(90deg,#e74c3c,#ec7063)}
+  .kpi-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.5rem; }
+  .kpi-icon { width:42px; height:42px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; }
+  .kpi-i1{background:rgba(200,169,74,0.15)} .kpi-i2{background:rgba(52,152,219,0.15)}
+  .kpi-i3{background:rgba(39,174,96,0.15)} .kpi-i4{background:rgba(231,76,60,0.15)}
+  .kpi-trend { font-size:0.72rem; color:var(--green-light); font-weight:600; }
+  .kpi-num { font-size:2.2rem; font-weight:900; color:var(--white); }
+  .kpi-lbl { font-size:0.78rem; color:var(--gray); margin-top:2px; }
+
+  /* CHARTS */
+  .charts-row { display:grid; grid-template-columns:1.4fr 1fr; gap:1rem; margin-bottom:1.5rem; }
+  @media(max-width:1000px){.charts-row{grid-template-columns:1fr}}
+  .chart-card { background:linear-gradient(145deg,rgba(16,32,64,0.9),rgba(10,22,40,0.95));
+    border:1px solid rgba(255,255,255,0.07); border-radius:16px; padding:1.5rem; }
+  .chart-card h3 { font-size:0.9rem; font-weight:700; color:var(--white); margin-bottom:1rem; }
+  .bar-chart { display:flex; flex-direction:column; gap:0.75rem; }
+  .bar-row { display:flex; align-items:center; gap:0.8rem; }
+  .bar-lbl { font-size:0.76rem; color:var(--gray); min-width:160px; text-align:right; }
+  .bar-track { flex:1; background:rgba(255,255,255,0.06); border-radius:6px; height:14px; overflow:hidden; }
+  .bar-fill { height:100%; border-radius:6px; background:linear-gradient(90deg,var(--gold),var(--gold-light));
+    transition:width 1s ease; position:relative; }
+  .bar-fill::after { content:attr(data-val); position:absolute; right:-30px; top:50%;
+    transform:translateY(-50%); font-size:0.72rem; font-weight:700; color:var(--gold-light); white-space:nowrap; }
+  .donut-wrap { display:flex; align-items:center; justify-content:center; gap:2rem; }
+  .donut-svg { width:140px; height:140px; }
+  .donut-legend { display:flex; flex-direction:column; gap:0.6rem; }
+  .legend-item { display:flex; align-items:center; gap:0.5rem; font-size:0.78rem; color:var(--gray); }
+  .legend-dot { width:10px; height:10px; border-radius:3px; flex-shrink:0; }
+
+  /* TABLE */
+  .table-card { background:linear-gradient(145deg,rgba(16,32,64,0.9),rgba(10,22,40,0.95));
+    border:1px solid rgba(255,255,255,0.07); border-radius:16px; overflow:hidden; margin-bottom:1.5rem; }
+  .table-card-header { padding:1.2rem 1.5rem; display:flex; align-items:center; justify-content:space-between;
+    border-bottom:1px solid rgba(255,255,255,0.07); flex-wrap:wrap; gap:0.5rem; }
+  .table-card-header h3 { font-size:0.95rem; font-weight:700; color:var(--white); }
+  .table-actions { display:flex; gap:0.6rem; align-items:center; flex-wrap:wrap; }
+  .filter-btn { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);
+    border-radius:8px; padding:0.4rem 0.9rem; cursor:pointer; font-family:'Cairo',sans-serif;
+    font-size:0.78rem; color:var(--gray); transition:all 0.25s; }
+  .filter-btn:hover,.filter-btn.active { background:rgba(200,169,74,0.1); border-color:rgba(200,169,74,0.3); color:var(--gold-light); }
+  .search-input { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);
+    border-radius:8px; padding:0.4rem 0.9rem; color:var(--white); font-family:'Cairo',sans-serif;
+    font-size:0.78rem; outline:none; direction:rtl; transition:all 0.25s; width:180px; }
+  .search-input:focus { border-color:rgba(200,169,74,0.3); background:rgba(200,169,74,0.05); }
+  .complaints-table { width:100%; border-collapse:collapse; }
+  .complaints-table th { background:rgba(255,255,255,0.04); padding:0.7rem 1.2rem; text-align:right;
+    font-size:0.75rem; font-weight:700; color:var(--gray); border-bottom:1px solid rgba(255,255,255,0.07); white-space:nowrap; }
+  .complaints-table td { padding:0.85rem 1.2rem; font-size:0.82rem; color:rgba(255,255,255,0.85);
+    border-bottom:1px solid rgba(255,255,255,0.04); transition:background 0.2s; }
+  .complaints-table tr:hover td { background:rgba(200,169,74,0.04); }
+  .complaints-table tr:last-child td { border:none; }
+  .ref-code { font-family:monospace; font-size:0.8rem; font-weight:700; color:var(--gold-light);
+    letter-spacing:1px; background:rgba(200,169,74,0.08); padding:2px 8px; border-radius:5px; }
+  .action-btns { display:flex; gap:0.4rem; }
+  .act-btn { width:30px; height:30px; border-radius:7px; border:none; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; font-size:0.85rem; transition:all 0.2s; }
+  .act-view{background:rgba(52,152,219,0.15);color:#3498db} .act-view:hover{background:rgba(52,152,219,0.3)}
+  .act-edit{background:rgba(200,169,74,0.15);color:var(--gold)} .act-edit:hover{background:rgba(200,169,74,0.3)}
+  .act-delete{background:rgba(231,76,60,0.15);color:#e74c3c} .act-delete:hover{background:rgba(231,76,60,0.3)}
+  .empty-state { text-align:center; padding:3rem; color:var(--gray); font-size:0.88rem; }
+  .empty-state .empty-icon { font-size:3rem; margin-bottom:1rem; opacity:0.3; }
+
+  /* DETAIL MODAL */
+  .detail-modal { position:fixed; inset:0; z-index:500; background:rgba(5,10,20,0.88);
+    display:flex; align-items:center; justify-content:center; backdrop-filter:blur(6px);
+    opacity:0; pointer-events:none; transition:all 0.3s; }
+  .detail-modal.show { opacity:1; pointer-events:all; }
+  .detail-box { background:linear-gradient(145deg,#0d1f3c,#0a1628); border:1px solid rgba(200,169,74,0.3);
+    border-radius:20px; padding:2rem; max-width:600px; width:90%; max-height:85vh; overflow-y:auto;
+    transform:scale(0.9) translateY(20px); transition:all 0.35s cubic-bezier(0.34,1.56,0.64,1); }
+  .detail-modal.show .detail-box { transform:scale(1) translateY(0); }
+  .detail-header { display:flex; justify-content:space-between; align-items:flex-start;
+    margin-bottom:1.5rem; padding-bottom:1rem; border-bottom:1px solid rgba(200,169,74,0.15); }
+  .close-btn { width:32px; height:32px; border-radius:8px; background:rgba(231,76,60,0.15);
+    border:none; cursor:pointer; color:#e74c3c; font-size:1rem;
+    display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+  .close-btn:hover { background:rgba(231,76,60,0.3); }
+  .detail-field { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07);
+    border-radius:10px; padding:0.9rem 1rem; margin-bottom:0.8rem; }
+  .detail-field label { font-size:0.72rem; color:var(--gold-light); font-weight:700; display:block; margin-bottom:4px; }
+  .detail-field p { font-size:0.88rem; color:var(--white); line-height:1.7; }
+  .status-select { background:rgba(255,255,255,0.05); border:1.5px solid rgba(200,169,74,0.3);
+    border-radius:8px; padding:0.5rem 0.8rem; color:var(--white); font-family:'Cairo',sans-serif;
+    font-size:0.82rem; outline:none; direction:rtl; }
+  .status-select option { background:var(--navy); }
+  .notes-area { background:rgba(255,255,255,0.04); border:1.5px solid rgba(255,255,255,0.1);
+    border-radius:10px; padding:0.7rem 0.9rem; color:var(--white); font-family:'Cairo',sans-serif;
+    font-size:0.85rem; outline:none; width:100%; resize:vertical; min-height:80px; direction:rtl;
+    transition:border-color 0.3s; }
+  .notes-area:focus { border-color:var(--gold); }
+  .save-status-btn { background:linear-gradient(135deg,var(--gold),var(--gold-light)); border:none;
+    border-radius:10px; padding:0.65rem 1.8rem; color:var(--navy); font-family:'Cairo',sans-serif;
+    font-weight:800; font-size:0.85rem; cursor:pointer; transition:all 0.3s; box-shadow:var(--shadow-gold); margin-top:0.8rem; }
+  .save-status-btn:hover { transform:translateY(-2px); }
+
+  /* SETTINGS */
+  .settings-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; }
+  @media(max-width:800px){.settings-grid{grid-template-columns:1fr}}
+  .settings-card { background:linear-gradient(145deg,rgba(16,32,64,0.9),rgba(10,22,40,0.95));
+    border:1px solid rgba(255,255,255,0.07); border-radius:16px; padding:1.5rem; }
+  .settings-card h3 { font-size:0.9rem; font-weight:700; color:var(--gold-light); margin-bottom:1.2rem;
+    display:flex; align-items:center; gap:0.5rem; }
+  .settings-row { display:flex; flex-direction:column; gap:0.4rem; margin-bottom:1rem; }
+  .settings-row label { font-size:0.78rem; color:var(--gray); font-weight:600; }
+  .settings-input { background:rgba(255,255,255,0.04); border:1.5px solid rgba(255,255,255,0.1);
+    border-radius:9px; padding:0.6rem 0.9rem; color:var(--white); font-family:'Cairo',sans-serif;
+    font-size:0.85rem; outline:none; direction:rtl; transition:border-color 0.3s; width:100%; }
+  .settings-input:focus { border-color:var(--gold); }
+  .save-settings-btn { background:linear-gradient(135deg,var(--royal),var(--blue)); border:none;
+    border-radius:9px; padding:0.6rem 1.5rem; color:white; font-family:'Cairo',sans-serif;
+    font-weight:700; font-size:0.82rem; cursor:pointer; transition:all 0.25s; border:1px solid rgba(200,169,74,0.2); }
+  .save-settings-btn:hover { background:linear-gradient(135deg,var(--gold) 0%,var(--gold-light) 100%); color:var(--navy); }
+
+  /* EMAIL SETTINGS special card */
+  .email-sector-row { display:flex; gap:0.5rem; align-items:center; margin-bottom:0.6rem;
+    background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07);
+    border-radius:10px; padding:0.7rem 0.9rem; }
+  .email-sector-name { font-size:0.8rem; color:var(--gold-light); font-weight:600; min-width:160px; }
+  .email-sector-input { flex:1; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);
+    border-radius:7px; padding:0.4rem 0.7rem; color:var(--white); font-family:'Cairo',sans-serif;
+    font-size:0.8rem; outline:none; direction:ltr; transition:border-color 0.25s; }
+  .email-sector-input:focus { border-color:var(--gold); }
+
+  /* FOOTER */
+  .footer { position:relative; z-index:10; background:rgba(5,10,20,0.95);
+    border-top:1px solid rgba(200,169,74,0.1); padding:1.5rem 2rem; text-align:center; }
+  .footer p { font-size:0.75rem; color:var(--gray); line-height:1.8; }
+  .footer strong { color:var(--gold-light); }
+  .footer-divider { width:60px; height:2px; background:linear-gradient(90deg,var(--gold),var(--gold-light));
+    margin:0.5rem auto; border-radius:2px; }
+
+  .export-btn { background:rgba(39,174,96,0.15); border:1px solid rgba(39,174,96,0.3);
+    border-radius:8px; padding:0.4rem 0.9rem; cursor:pointer; font-family:'Cairo',sans-serif;
+    font-size:0.78rem; color:#52be80; transition:all 0.25s; display:flex; align-items:center; gap:5px; }
+  .export-btn:hover { background:rgba(39,174,96,0.25); }
+  .priority-high{color:#e74c3c;font-weight:700} .priority-medium{color:#f39c12;font-weight:700}
+  .priority-low{color:#27ae60;font-weight:700}
+  .toast { position:fixed; bottom:2rem; left:50%; transform:translateX(-50%) translateY(100px);
+    background:linear-gradient(135deg,#0a2a12,#0d3516); border:1px solid rgba(39,174,96,0.4);
+    border-radius:12px; padding:0.8rem 1.5rem; font-size:0.85rem; color:#52be80;
+    z-index:9999; transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    box-shadow:0 8px 30px rgba(0,0,0,0.3); }
+  .toast.show { transform:translateX(-50%) translateY(0); }
+  ::-webkit-scrollbar{width:6px;height:6px}
+  ::-webkit-scrollbar-track{background:rgba(255,255,255,0.03)}
+  ::-webkit-scrollbar-thumb{background:rgba(200,169,74,0.3);border-radius:3px}
+  ::-webkit-scrollbar-thumb:hover{background:rgba(200,169,74,0.5)}
+  @media(max-width:700px){
+    .header-text h1{font-size:1.1rem} .admin-sidebar{width:55px}
+    .nav-item span.nav-label{display:none} .nav-section-title{display:none}
+    .sidebar-logo p,.sidebar-logo strong{display:none} .admin-content{padding:1rem}
+    .dash-kpi-row{grid-template-columns:1fr 1fr} .form-row{grid-template-columns:1fr}
+    .type-grid{grid-template-columns:repeat(2,1fr)} }
+  .loading-spinner { display:inline-block; width:16px; height:16px; border:2px solid rgba(10,22,40,0.3);
+    border-top-color:var(--navy); border-radius:50%; animation:spin 0.7s linear infinite; margin-left:8px; }
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div class="bg-canvas"></div>
+<div class="bg-grid"></div>
+
+<!-- Firebase Connection Status -->
+<div class="fb-status" id="fbStatus">
+  <div class="fb-dot loading" id="fbDot"></div>
+  <span id="fbText">جارٍ الاتصال...</span>
+</div>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-inner">
+    <img class="header-logo" src="https://upload.wikimedia.org/wikipedia/ar/1/18/%D8%B4%D8%B9%D8%A7%D8%B1_%D8%AC%D8%A7%D9%85%D8%B9%D8%A9_%D8%A7%D9%84%D9%85%D9%86%D8%B5%D9%88%D8%B1%D8%A9.png"
+      onerror="this.style.display='none'" alt="شعار الكلية">
+    <div class="header-text">
+      <h1>نظام الشكاوى والمقترحات</h1>
+      <p>كلية الهندسة — جامعة المنصورة &nbsp;|&nbsp; Faculty of Engineering, Mansoura University</p>
+    </div>
+    <div class="header-badge" onclick="showAdminLogin()">🔐 لوحة الإدارة</div>
+  </div>
+</header>
+
+<div class="sponsor-banner">
+  برعاية الأستاذ الدكتور <span>شريف مسعد البدوي</span> عميد كلية الهندسة — جامعة المنصورة
+  &nbsp;|&nbsp; تصميم وتنفيذ: <span>فريق العمل بوحدة تكنولوجيا المعلومات</span>
+</div>
+
+<div class="ticker-wrap">
+  <div class="ticker-label">📢 إشعار</div>
+  <div class="ticker-track">
+    <span>🎓 مرحباً بكم في نظام الشكاوى والمقترحات الرقمي لكلية الهندسة جامعة المنصورة</span>
+    <span>📋 يمكنكم تقديم شكاواكم ومقترحاتكم بكل سهولة ويسر وسيتم الرد في أقرب وقت ممكن</span>
+    <span>🔍 احتفظوا بالرقم المرجعي لمتابعة حالة شكواكم أو مقترحاتكم</span>
+    <span>📞 للاستفسار تواصل مع وحدة تكنولوجيا المعلومات — كلية الهندسة</span>
+    <span>🎓 مرحباً بكم في نظام الشكاوى والمقترحات الرقمي لكلية الهندسة جامعة المنصورة</span>
+    <span>📋 يمكنكم تقديم شكاواكم ومقترحاتكم بكل سهولة ويسر وسيتم الرد في أقرب وقت ممكن</span>
+    <span>🔍 احتفظوا بالرقم المرجعي لمتابعة حالة شكواكم أو مقترحاتكم</span>
+    <span>📞 للاستفسار تواصل مع وحدة تكنولوجيا المعلومات — كلية الهندسة</span>
+  </div>
+</div>
+
+<nav class="public-nav" id="publicNav">
+  <div class="pnav-item active" onclick="showPublicView('formView',this)">📝 تقديم شكوى / مقترح</div>
+  <div class="pnav-item" onclick="showPublicView('trackView',this)">🔍 متابعة الشكوى</div>
+  <div class="pnav-item" onclick="showPublicView('infoView',this)">ℹ️ عن النظام</div>
+</nav>
+
+<main class="main">
+
+<!-- ═══ FORM VIEW ═══ -->
+<div class="view active" id="formView">
+  <section class="hero-section">
+    <div class="hero-left">
+      <h2>صوتك يُسمَع هنا 🎯</h2>
+      <p>نظام رقمي متكامل لاستقبال ومتابعة الشكاوى والمقترحات لكافة أفراد أسرة كلية الهندسة — طلاباً وأعضاء هيئة تدريس وموظفين وخريجين.</p>
+      <div class="sectors-list">
+        <div class="sector-item"><div class="sector-icon">👨‍⚖️</div><div class="sector-info"><strong>قطاع عميد الكلية</strong><span>الشؤون العامة والقرارات الكلية</span></div></div>
+        <div class="sector-item"><div class="sector-icon">🎓</div><div class="sector-info"><strong>قطاع شئون التعليم والطلاب</strong><span>المناهج، الامتحانات، الخدمات الطلابية</span></div></div>
+        <div class="sector-item"><div class="sector-icon">🔬</div><div class="sector-info"><strong>قطاع الدراسات العليا والبحوث</strong><span>الدراسات العليا، البحث العلمي</span></div></div>
+        <div class="sector-item"><div class="sector-icon">🌱</div><div class="sector-info"><strong>قطاع تنمية البيئة وخدمة المجتمع</strong><span>الأنشطة المجتمعية والبيئية</span></div></div>
+      </div>
+      <div class="stat-cards">
+        <div class="stat-card"><div class="num" id="statTotal">—</div><div class="lbl">إجمالي الشكاوى</div></div>
+        <div class="stat-card"><div class="num" id="statResolved">—</div><div class="lbl">تم حلها</div></div>
+        <div class="stat-card"><div class="num" id="statPending">—</div><div class="lbl">قيد المراجعة</div></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="form-card">
+        <div class="form-card-title">📬 تقديم شكوى أو مقترح</div>
+        <div class="form-card-sub">الحقول المُعلَّمة بـ (*) إلزامية — الاسم والإيميل اختياريان لضمان الخصوصية</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>👤 الاسم الكامل <span style="font-size:0.72rem;color:var(--gray);font-weight:400">(اختياري)</span></label>
+            <input type="text" class="form-input" id="fName" placeholder="أدخل اسمك الكامل (اختياري)">
+          </div>
+          <div class="form-group">
+            <label>📧 البريد الإلكتروني <span style="font-size:0.72rem;color:var(--gray);font-weight:400">(اختياري)</span></label>
+            <input type="email" class="form-input" id="fEmail" placeholder="example@mans.edu.eg" style="direction:ltr">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>📱 رقم الهاتف (اختياري)</label>
+            <input type="tel" class="form-input" id="fPhone" placeholder="01xxxxxxxxx" style="direction:ltr">
+          </div>
+          <div class="form-group">
+            <label>🎭 صفة مقدم الشكوى <span class="req">*</span></label>
+            <select class="form-select" id="fRole">
+              <option value="">— اختر صفتك —</option>
+              <option value="طالب">👨‍🎓 طالب</option>
+              <option value="عضو هيئة تدريس">👨‍🏫 عضو هيئة تدريس</option>
+              <option value="جهاز إداري">🏢 جهاز إداري</option>
+              <option value="خريج">🎓 خريج</option>
+              <option value="أخرى">🔹 أخرى</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:1rem">
+          <label>📂 نوع التقديم <span class="req">*</span></label>
+          <div class="type-grid">
+            <button class="type-btn" onclick="selectType('شكوى',this)"><span class="tb-icon">⚠️</span> شكوى</button>
+            <button class="type-btn" onclick="selectType('مقترح',this)"><span class="tb-icon">💡</span> مقترح</button>
+            <button class="type-btn" onclick="selectType('استفسار',this)"><span class="tb-icon">❓</span> استفسار</button>
+            <button class="type-btn" onclick="selectType('طلب',this)"><span class="tb-icon">📄</span> طلب</button>
+          </div>
+          <input type="hidden" id="fType" value="">
+        </div>
+        <div class="form-group" style="margin-bottom:1rem">
+          <label>🏛️ القطاع المعني <span class="req">*</span></label>
+          <select class="form-select" id="fSector">
+            <option value="">— اختر القطاع —</option>
+            <option value="قطاع عميد الكلية">👨‍⚖️ قطاع عميد الكلية</option>
+            <option value="قطاع شئون التعليم والطلاب">🎓 قطاع شئون التعليم والطلاب</option>
+            <option value="قطاع شئون الدراسات العليا والبحوث">🔬 قطاع شئون الدراسات العليا والبحوث</option>
+            <option value="قطاع شئون تنمية البيئة وخدمة المجتمع">🌱 قطاع شئون تنمية البيئة وخدمة المجتمع</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:1rem">
+          <label>🚦 الأولوية <span class="req">*</span></label>
+          <div class="priority-row">
+            <button class="priority-btn" data-p="low" onclick="selectPriority('منخفضة',this)">🟢 منخفضة</button>
+            <button class="priority-btn" data-p="medium" onclick="selectPriority('متوسطة',this)">🟡 متوسطة</button>
+            <button class="priority-btn" data-p="high" onclick="selectPriority('عالية',this)">🔴 عالية</button>
+          </div>
+          <input type="hidden" id="fPriority" value="">
+        </div>
+        <div class="form-group" style="margin-bottom:1rem">
+          <label>📌 موضوع الشكوى / المقترح <span class="req">*</span></label>
+          <input type="text" class="form-input" id="fSubject" placeholder="اكتب موضوعاً مختصراً وواضحاً" maxlength="100">
+        </div>
+        <div class="form-group" style="margin-bottom:0.3rem">
+          <label>📝 تفاصيل الشكوى / المقترح <span class="req">*</span></label>
+          <textarea class="form-textarea" id="fBody" placeholder="اكتب تفاصيل شكواك أو مقترحك بوضوح ودقة..." maxlength="2000" oninput="updateCharCount()"></textarea>
+          <div class="char-count" id="charCount">0 / 2000</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin:0.8rem 0;font-size:0.82rem;color:var(--gray)">
+          <input type="checkbox" id="fAnon" style="width:16px;height:16px;accent-color:var(--gold);cursor:pointer">
+          <label for="fAnon" style="cursor:pointer">تقديم بشكل مجهول (لن يظهر اسمك للإدارة)</label>
+        </div>
+        <button class="submit-btn" id="submitBtn" onclick="submitComplaint()">✉️ إرسال الشكوى / المقترح</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ═══ TRACK VIEW ═══ -->
+<div class="view" id="trackView">
+  <div class="track-section">
+    <div class="track-card">
+      <div class="form-card-title">🔍 متابعة الشكوى</div>
+      <div class="form-card-sub">أدخل الرقم المرجعي الذي حصلت عليه عند تقديم الشكوى</div>
+      <div class="form-row" style="align-items:flex-end">
+        <div class="form-group" style="flex:1">
+          <label>🔢 الرقم المرجعي</label>
+          <input type="text" class="form-input" id="trackRef" placeholder="ENG-2026-XXXXXX" style="direction:ltr;letter-spacing:2px;font-weight:700">
+        </div>
+        <button class="submit-btn" style="width:auto;padding:0.75rem 1.5rem;margin-top:0;flex-shrink:0" onclick="trackComplaint()">🔎 متابعة</button>
+      </div>
+      <div class="track-result" id="trackResult"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ INFO VIEW ═══ -->
+<div class="view" id="infoView">
+  <div style="max-width:800px;margin:0 auto;padding:3rem 2rem">
+    <div class="form-card">
+      <div class="form-card-title">ℹ️ عن النظام</div>
+      <div style="color:var(--gray);line-height:2;font-size:0.9rem">
+        <p style="margin-bottom:1rem">نظام الشكاوى والمقترحات الرقمي لكلية الهندسة — جامعة المنصورة هو منصة إلكترونية متكاملة تُتيح لجميع أفراد مجتمع الكلية تقديم شكاواهم ومقترحاتهم من أي جهاز وأي مكان في العالم.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.2rem">
+          <div style="background:rgba(200,169,74,0.06);border:1px solid rgba(200,169,74,0.15);border-radius:12px;padding:1rem"><div style="font-size:1.5rem;margin-bottom:0.5rem">🌐</div><strong style="color:var(--white)">متاح من أي مكان</strong><p style="font-size:0.82rem;margin-top:0.4rem">البيانات محفوظة على قاعدة بيانات سحابية — تصل إليها من أي جهاز.</p></div>
+          <div style="background:rgba(200,169,74,0.06);border:1px solid rgba(200,169,74,0.15);border-radius:12px;padding:1rem"><div style="font-size:1.5rem;margin-bottom:0.5rem">⚡</div><strong style="color:var(--white)">تحديث فوري</strong><p style="font-size:0.82rem;margin-top:0.4rem">الشكاوى تظهر في لوحة الإدارة فوراً عند الإرسال.</p></div>
+          <div style="background:rgba(200,169,74,0.06);border:1px solid rgba(200,169,74,0.15);border-radius:12px;padding:1rem"><div style="font-size:1.5rem;margin-bottom:0.5rem">🛡️</div><strong style="color:var(--white)">الخصوصية والسرية</strong><p style="font-size:0.82rem;margin-top:0.4rem">مع خيار التقديم مجهول الهوية للحفاظ على الخصوصية.</p></div>
+          <div style="background:rgba(200,169,74,0.06);border:1px solid rgba(200,169,74,0.15);border-radius:12px;padding:1rem"><div style="font-size:1.5rem;margin-bottom:0.5rem">📱</div><strong style="color:var(--white)">جميع الأجهزة</strong><p style="font-size:0.82rem;margin-top:0.4rem">يعمل على الهاتف والحاسوب واللوحيات بسلاسة تامة.</p></div>
+        </div>
+        <div style="background:rgba(30,77,153,0.1);border:1px solid rgba(30,77,153,0.2);border-radius:12px;padding:1rem;text-align:center">
+          <p style="color:var(--gold-light);font-weight:700">برعاية: أ.د. شريف مسعد البدوي — عميد كلية الهندسة جامعة المنصورة</p>
+          <p style="font-size:0.8rem;margin-top:4px">تصميم وتنفيذ: فريق العمل بوحدة تكنولوجيا المعلومات — كلية الهندسة</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ADMIN LOGIN ═══ -->
+<div class="view" id="adminLoginView">
+  <div class="admin-login">
+    <div class="login-card">
+      <img class="login-logo" src="https://upload.wikimedia.org/wikipedia/ar/1/18/%D8%B4%D8%B9%D8%A7%D8%B1_%D8%AC%D8%A7%D9%85%D8%B9%D8%A9_%D8%A7%D9%84%D9%85%D9%86%D8%B5%D9%88%D8%B1%D8%A9.png" onerror="this.style.display='none'" alt="">
+      <div class="lock-icon">🔐</div>
+      <div style="text-align:center;margin-bottom:1.5rem">
+        <div style="font-size:1.1rem;font-weight:800;color:var(--white)">لوحة إدارة النظام</div>
+        <div style="font-size:0.8rem;color:var(--gray);margin-top:4px">كلية الهندسة — جامعة المنصورة</div>
+      </div>
+      <div class="form-group" style="margin-bottom:1rem">
+        <label>🔑 كلمة المرور</label>
+        <input type="password" class="form-input" id="adminPass" placeholder="أدخل كلمة المرور"
+          onkeydown="if(event.key==='Enter')adminLogin()" style="letter-spacing:3px;text-align:center">
+      </div>
+      <div class="login-err" id="loginErr">❌ كلمة المرور غير صحيحة. حاول مرة أخرى.</div>
+      <button class="submit-btn" onclick="adminLogin()">🚀 دخول</button>
+      <button onclick="showPublicView('formView',document.querySelector('.pnav-item'))"
+        style="width:100%;margin-top:0.8rem;background:transparent;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:0.7rem;color:var(--gray);font-family:'Cairo',sans-serif;font-size:0.82rem;cursor:pointer">
+        ← العودة للصفحة الرئيسية
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ADMIN DASHBOARD ═══ -->
+<div class="view" id="adminView">
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="sidebar-logo">
+        <img src="https://upload.wikimedia.org/wikipedia/ar/1/18/%D8%B4%D8%B9%D8%A7%D8%B1_%D8%AC%D8%A7%D9%85%D8%B9%D8%A9_%D8%A7%D9%84%D9%85%D9%86%D8%B5%D9%88%D8%B1%D8%A9.png" onerror="this.style.display='none'" alt="">
+        <strong>لوحة الإدارة</strong><p>كلية الهندسة</p>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">الرئيسية</div>
+        <div class="nav-item active" onclick="showAdminSub('dashOverview',this)"><span class="nav-icon">📊</span><span class="nav-label">لوحة المعلومات</span></div>
+        <div class="nav-section-title">الشكاوى</div>
+        <div class="nav-item" onclick="showAdminSub('allComplaints',this)"><span class="nav-icon">📋</span><span class="nav-label">كل الشكاوى</span><span class="nav-badge" id="newBadge">0</span></div>
+        <div class="nav-item" onclick="filterAndShow('جديدة')"><span class="nav-icon">🆕</span><span class="nav-label">الجديدة</span></div>
+        <div class="nav-item" onclick="filterAndShow('قيد المراجعة')"><span class="nav-icon">⏳</span><span class="nav-label">قيد المراجعة</span></div>
+        <div class="nav-item" onclick="filterAndShow('تمت المعالجة')"><span class="nav-icon">✅</span><span class="nav-label">تمت المعالجة</span></div>
+        <div class="nav-item" onclick="filterAndShow('مغلقة')"><span class="nav-icon">🔒</span><span class="nav-label">مغلقة</span></div>
+        <div class="nav-section-title">الإعدادات</div>
+        <div class="nav-item" onclick="showAdminSub('settingsView',this)"><span class="nav-icon">⚙️</span><span class="nav-label">الإعدادات</span></div>
+        <div class="nav-item" onclick="adminLogout()"><span class="nav-icon">🚪</span><span class="nav-label">تسجيل الخروج</span></div>
+      </nav>
+    </aside>
+
+    <div class="admin-content">
+
+      <!-- Dashboard -->
+      <div class="admin-sub-view active" id="dashOverview">
+        <div class="page-title"><div class="title-line"></div>لوحة المعلومات<span style="font-size:0.75rem;color:var(--gray);font-weight:400" id="lastUpdate"></span></div>
+        <div class="dash-kpi-row">
+          <div class="kpi-card"><div class="kpi-top"><div class="kpi-icon kpi-i1">📋</div><div class="kpi-trend" id="kpiTrend1">—</div></div><div class="kpi-num" id="kpi1">—</div><div class="kpi-lbl">إجمالي الشكاوى</div></div>
+          <div class="kpi-card"><div class="kpi-top"><div class="kpi-icon kpi-i2">⏳</div></div><div class="kpi-num" id="kpi2">—</div><div class="kpi-lbl">قيد المراجعة</div></div>
+          <div class="kpi-card"><div class="kpi-top"><div class="kpi-icon kpi-i3">✅</div></div><div class="kpi-num" id="kpi3">—</div><div class="kpi-lbl">تمت المعالجة</div></div>
+          <div class="kpi-card"><div class="kpi-top"><div class="kpi-icon kpi-i4">🔴</div></div><div class="kpi-num" id="kpi4">—</div><div class="kpi-lbl">أولوية عالية</div></div>
+        </div>
+        <div class="charts-row">
+          <div class="chart-card"><h3>📊 توزيع الشكاوى حسب القطاع</h3><div class="bar-chart" id="sectorChart"><div style="color:var(--gray);text-align:center;padding:2rem">جارٍ التحميل...</div></div></div>
+          <div class="chart-card"><h3>🥧 توزيع حسب النوع</h3><div class="donut-wrap"><svg class="donut-svg" viewBox="0 0 100 100" id="donutSvg"></svg><div class="donut-legend" id="donutLegend"></div></div></div>
+        </div>
+        <div class="table-card">
+          <div class="table-card-header"><h3>📑 آخر الشكاوى الواردة</h3></div>
+          <div style="overflow-x:auto">
+            <table class="complaints-table"><thead><tr><th>الرقم المرجعي</th><th>مقدم الشكوى</th><th>النوع</th><th>القطاع</th><th>الأولوية</th><th>الحالة</th><th>التاريخ</th><th>إجراءات</th></tr></thead>
+            <tbody id="recentTableBody"><tr><td colspan="8" class="empty-state"><div class="empty-icon">⏳</div>جارٍ التحميل...</td></tr></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- All Complaints -->
+      <div class="admin-sub-view" id="allComplaints">
+        <div class="page-title"><div class="title-line"></div><span id="complaintsPageTitle">كل الشكاوى</span></div>
+        <div class="table-card">
+          <div class="table-card-header">
+            <h3>جميع الشكاوى والمقترحات</h3>
+            <div class="table-actions">
+              <input class="search-input" type="text" placeholder="🔍 بحث..." id="searchInput" oninput="renderTable()">
+              <button class="filter-btn active" onclick="setFilter('',this)">الكل</button>
+              <button class="filter-btn" onclick="setFilter('جديدة',this)">جديدة</button>
+              <button class="filter-btn" onclick="setFilter('قيد المراجعة',this)">مراجعة</button>
+              <button class="filter-btn" onclick="setFilter('تمت المعالجة',this)">منجزة</button>
+              <button class="export-btn" onclick="exportCSV()">📥 تصدير CSV</button>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="complaints-table"><thead><tr><th>الرقم المرجعي</th><th>مقدم الشكوى</th><th>النوع</th><th>القطاع</th><th>الموضوع</th><th>الأولوية</th><th>الحالة</th><th>التاريخ</th><th>إجراءات</th></tr></thead>
+            <tbody id="mainTableBody"><tr><td colspan="9" class="empty-state"><div class="empty-icon">⏳</div>جارٍ التحميل...</td></tr></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings -->
+      <div class="admin-sub-view" id="settingsView">
+        <div class="page-title"><div class="title-line"></div>إعدادات النظام</div>
+        <div class="settings-grid">
+          <div class="settings-card">
+            <h3>🏛️ معلومات الكلية</h3>
+            <div class="settings-row"><label>اسم الكلية</label><input type="text" class="settings-input" id="settCollegeName"></div>
+            <div class="settings-row"><label>اسم عميد الكلية</label><input type="text" class="settings-input" id="settDeanName"></div>
+            <div class="settings-row"><label>الإيميل العام (يستقبل كل الشكاوى)</label><input type="email" class="settings-input" id="settEmailGeneral" placeholder="general@mans.edu.eg" style="direction:ltr"></div>
+            <button class="save-settings-btn" onclick="saveSettings()">💾 حفظ الإعدادات</button>
+          </div>
+
+          <div class="settings-card">
+            <h3>📧 إيميلات القطاعات</h3>
+            <p style="font-size:0.78rem;color:var(--gray);margin-bottom:1rem">عند إرسال شكوى لأي قطاع، يصله إيميل تلقائي + الإيميل العام</p>
+            <div id="sectorEmailsList"></div>
+            <button class="save-settings-btn" style="margin-top:0.8rem" onclick="saveSectorEmails()">💾 حفظ الإيميلات</button>
+          </div>
+
+          <div class="settings-card">
+            <h3>🔐 تغيير كلمة المرور</h3>
+            <div class="settings-row"><label>كلمة المرور الحالية</label><input type="password" class="settings-input" id="currPass" placeholder="••••••••"></div>
+            <div class="settings-row"><label>كلمة المرور الجديدة</label><input type="password" class="settings-input" id="newPass" placeholder="••••••••"></div>
+            <div class="settings-row"><label>تأكيد كلمة المرور الجديدة</label><input type="password" class="settings-input" id="confPass" placeholder="••••••••"></div>
+            <button class="save-settings-btn" onclick="changePass()">🔑 تغيير كلمة المرور</button>
+          </div>
+
+          <div class="settings-card">
+            <h3>📊 إحصاءات النظام</h3>
+            <div id="systemStats" style="display:flex;flex-direction:column;gap:0.8rem;font-size:0.85rem;color:var(--gray)"></div>
+            <button class="save-settings-btn" style="margin-top:1rem;background:rgba(231,76,60,0.2);color:#e74c3c;border-color:rgba(231,76,60,0.3)"
+              onclick="if(confirm('هل أنت متأكد من حذف جميع الشكاوى؟ لا يمكن التراجع عن هذا الإجراء!'))clearAll()">
+              🗑️ مسح جميع الشكاوى
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- SUCCESS MODAL -->
+<div class="modal-overlay" id="successModal">
+  <div class="modal-box">
+    <div class="modal-check">✅</div>
+    <h2 style="font-size:1.2rem;font-weight:800;color:var(--white);margin-bottom:0.5rem">تم استلام شكواك بنجاح!</h2>
+    <p style="font-size:0.85rem;color:var(--gray);margin-bottom:0.5rem">رقمك المرجعي هو:</p>
+    <div class="modal-ref" id="modalRef"><small>الرقم المرجعي</small>—</div>
+    <p style="font-size:0.8rem;color:var(--gray);margin-bottom:1rem">احتفظ بهذا الرقم لمتابعة حالة شكواك من أي جهاز 📱💻</p>
+    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;justify-content:center">
+      <button class="modal-track-btn" onclick="goTrack()">🔍 تتبع الشكوى</button>
+      <button class="modal-btn" onclick="closeModal()">حسناً</button>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="detail-modal" id="detailModal">
+  <div class="detail-box">
+    <div class="detail-header">
+      <div><div style="font-size:1rem;font-weight:800;color:var(--white)" id="detailTitle">تفاصيل الشكوى</div>
+      <div class="ref-code" id="detailRef" style="margin-top:6px;display:inline-block"></div></div>
+      <button class="close-btn" onclick="closeDetail()">✕</button>
+    </div>
+    <div id="detailContent"></div>
+    <div style="margin-top:1.2rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,0.07)">
+      <div class="form-group" style="margin-bottom:0.8rem">
+        <label style="font-size:0.78rem;color:var(--gold-light);font-weight:700;display:block;margin-bottom:6px">🔄 تغيير الحالة</label>
+        <select class="status-select" id="detailStatusSelect">
+          <option value="جديدة">🆕 جديدة</option>
+          <option value="قيد المراجعة">⏳ قيد المراجعة</option>
+          <option value="تمت المعالجة">✅ تمت المعالجة</option>
+          <option value="مغلقة">🔒 مغلقة</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label style="font-size:0.78rem;color:var(--gold-light);font-weight:700;display:block;margin-bottom:6px">📝 رد / ملاحظات الإدارة</label>
+        <textarea class="notes-area" id="detailNotes" placeholder="أضف ردك أو ملاحظاتك هنا..."></textarea>
+      </div>
+      <button class="save-status-btn" onclick="saveDetailStatus()">💾 حفظ التغييرات</button>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="footer-divider"></div>
+  <p>
+    <strong>نظام الشكاوى والمقترحات الرقمي</strong> — كلية الهندسة، جامعة المنصورة<br>
+    برعاية: <strong>أ.د. شريف مسعد البدوي</strong> — عميد كلية الهندسة<br>
+    تصميم وتنفيذ: <strong>فريق العمل بوحدة تكنولوجيا المعلومات</strong> — كلية الهندسة<br>
+    <span style="font-size:0.7rem;opacity:0.6">© 2026 جميع الحقوق محفوظة — مدعوم بتقنية Firebase</span>
+  </p>
+</footer>
+
+<div class="toast" id="toast">✅ تم الحفظ بنجاح</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SUPABASE SDK                                               -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<script>
+// ═══ SUPABASE CONFIG ═══
+const SUPABASE_URL = "https://cafojuyjtigatwdoptpd.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhZm9qdXlqdGlnYXR3ZG9wdHBkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjM5MjQsImV4cCI6MjA5Mjg5OTkyNH0.C3mDJuvs73W-5pIlL3l60roPRDONPqQXTy4Lsjww8Ng";
+
+// ═══ SIMPLE FETCH HELPERS ═══
+async function sbGet(table, params='') {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params}`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json'
+    }
+  });
+  if(!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+async function sbPost(table, data) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    },
+    body: JSON.stringify(data)
+  });
+  if(!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+async function sbPatch(table, id, data) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+    method: 'PATCH',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  });
+  if(!r.ok) throw new Error(await r.text());
+  return true;
+}
+
+async function sbPatchText(table, filter, data) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filter}`, {
+    method: 'PATCH',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  });
+  if(!r.ok) throw new Error(await r.text());
+  return true;
+}
+
+async function sbDelete(table, id) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+    method: 'DELETE',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY
+    }
+  });
+  if(!r.ok) throw new Error(await r.text());
+  return true;
+}
+
+// ═══ STATE ═══
+let SETTINGS = {
+  password: 'Eng#2026',
+  college_name: 'كلية الهندسة جامعة المنصورة',
+  dean_name: 'أ.د. شريف مسعد البدوي',
+  email_general: '',
+  sector_emails: {
+    'قطاع عميد الكلية': '',
+    'قطاع شئون التعليم والطلاب': '',
+    'قطاع شئون الدراسات العليا والبحوث': '',
+    'قطاع شئون تنمية البيئة وخدمة المجتمع': ''
+  }
+};
+let ALL_COMPLAINTS  = [];
+let currentFilter   = '';
+let currentDetailId = null;
+let adminLoggedIn   = false;
+let pollInterval    = null;
+
+// ═══ INIT ═══
+async function init() {
+  setFbStatus('loading', 'جارٍ الاتصال...');
+  try {
+    await loadSettings();
+    await loadComplaints();
+    setFbStatus('online', 'متصل بـ Supabase ✓');
+    startPolling();
+  } catch(e) {
+    console.error('Init error:', e);
+    setFbStatus('offline', 'خطأ في الاتصال — تحقق من الإنترنت');
+  }
+}
+
+function setFbStatus(state, text) {
+  const dot  = document.getElementById('fbDot');
+  const span = document.getElementById('fbText');
+  dot.className = 'fb-dot ' + state;
+  span.textContent = text;
+}
+
+// ═══ POLLING (تحديث كل 10 ثواني) ═══
+function startPolling() {
+  if(pollInterval) clearInterval(pollInterval);
+  pollInterval = setInterval(async () => {
+    try {
+      await loadComplaints();
+      setFbStatus('online', 'متصل — ' + ALL_COMPLAINTS.length + ' شكوى');
+    } catch(e) {
+      setFbStatus('offline', 'انقطع الاتصال');
+    }
+  }, 10000);
+}
+
+// ═══ LOAD SETTINGS ═══
+async function loadSettings() {
+  try {
+    const rows = await sbGet('settings', 'id=eq.main');
+    if(rows && rows.length > 0) {
+      const s = rows[0];
+      SETTINGS = {
+        password:      s.password      || 'Eng#2026',
+        college_name:  s.college_name  || 'كلية الهندسة جامعة المنصورة',
+        dean_name:     s.dean_name     || 'أ.د. شريف مسعد البدوي',
+        email_general: s.email_general || '',
+        sector_emails: s.sector_emails || {}
+      };
+    }
+  } catch(e) {
+    console.warn('Settings load failed, using defaults');
+  }
+}
+
+// ═══ LOAD COMPLAINTS ═══
+async function loadComplaints() {
+  const rows = await sbGet('complaints', 'order=timestamp.desc&limit=500');
+  ALL_COMPLAINTS = (rows || []).map(r => ({
+    id:         r.id,
+    ref:        r.ref,
+    name:       r.name,
+    realName:   r.real_name,
+    email:      r.email,
+    phone:      r.phone,
+    role:       r.role,
+    type:       r.type,
+    sector:     r.sector,
+    priority:   r.priority,
+    subject:    r.subject,
+    body:       r.body,
+    anon:       r.anon,
+    status:     r.status,
+    notes:      r.notes,
+    date:       r.date,
+    timestamp:  r.timestamp
+  }));
+  updatePublicStats();
+  if(adminLoggedIn) {
+    updateAdminCounters();
+    document.getElementById('newBadge').textContent = ALL_COMPLAINTS.filter(c=>c.status==='جديدة').length;
+    if(document.getElementById('dashOverview').classList.contains('active')) {
+      renderSectorChart(); renderDonut(); renderRecentTable();
+    }
+    if(document.getElementById('allComplaints').classList.contains('active')) renderTable();
+  }
+}
+
+// ═══ GENERATE REF ═══
+function generateRef() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let r = '';
+  for(let i=0;i<6;i++) r += chars[Math.floor(Math.random()*chars.length)];
+  return 'ENG-2026-' + r;
+}
+
+// ═══ VIEWS ═══
+window.showPublicView = function(id, navEl) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById('publicNav').style.display = '';
+  if(navEl) {
+    document.querySelectorAll('.pnav-item').forEach(n => n.classList.remove('active'));
+    navEl.classList.add('active');
+  }
+};
+
+window.showAdminLogin = function() {
+  if(adminLoggedIn) { showAdminDash(); return; }
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('adminLoginView').classList.add('active');
+  document.getElementById('publicNav').style.display = 'none';
+};
+
+function showAdminDash() {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('adminView').classList.add('active');
+  document.getElementById('publicNav').style.display = 'none';
+  updateAdminCounters();
+  renderSectorChart(); renderDonut(); renderRecentTable();
+}
+
+window.showAdminSub = function(id, navEl) {
+  document.querySelectorAll('.admin-sub-view').forEach(v => v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if(navEl) navEl.classList.add('active');
+  if(id==='dashOverview')  { updateAdminCounters(); renderSectorChart(); renderDonut(); renderRecentTable(); }
+  if(id==='allComplaints') { currentFilter=''; renderTable(); }
+  if(id==='settingsView')  renderSettings();
+};
+
+window.filterAndShow = function(status) {
+  currentFilter = status;
+  window.showAdminSub('allComplaints', null);
+  document.getElementById('complaintsPageTitle').textContent = status || 'كل الشكاوى';
+  renderTable();
+};
+
+// ═══ FORM ═══
+let selectedType = '', selectedPriority = '';
+
+window.selectType = function(t, btn) {
+  selectedType = t;
+  document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  document.getElementById('fType').value = t;
+};
+
+window.selectPriority = function(p, btn) {
+  selectedPriority = p;
+  document.querySelectorAll('.priority-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  document.getElementById('fPriority').value = p;
+};
+
+window.updateCharCount = function() {
+  document.getElementById('charCount').textContent = document.getElementById('fBody').value.length + ' / 2000';
+};
+
+function resetForm() {
+  ['fName','fEmail','fPhone','fSubject','fBody'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+  ['fRole','fSector'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('fType').value = '';
+  document.getElementById('fPriority').value = '';
+  document.querySelectorAll('.type-btn,.priority-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('fAnon').checked = false;
+  selectedType=''; selectedPriority='';
+  window.updateCharCount();
+}
+
+window.submitComplaint = async function() {
+  const name     = document.getElementById('fName').value.trim();
+  const email    = document.getElementById('fEmail').value.trim();
+  const role     = document.getElementById('fRole').value;
+  const type     = document.getElementById('fType').value;
+  const sector   = document.getElementById('fSector').value;
+  const priority = document.getElementById('fPriority').value;
+  const subject  = document.getElementById('fSubject').value.trim();
+  const body     = document.getElementById('fBody').value.trim();
+  const anon     = document.getElementById('fAnon').checked;
+
+  if(email && !email.includes('@')){ showToast('⚠️ البريد الإلكتروني غير صحيح','err'); return; }
+  if(!role)    { showToast('⚠️ اختر صفة مقدم الشكوى','err'); return; }
+  if(!type)    { showToast('⚠️ اختر نوع التقديم','err'); return; }
+  if(!sector)  { showToast('⚠️ اختر القطاع المعني','err'); return; }
+  if(!priority){ showToast('⚠️ حدد الأولوية','err'); return; }
+  if(!subject) { showToast('⚠️ اكتب موضوع الشكوى','err'); return; }
+  if(body.length < 20){ showToast('⚠️ اكتب تفاصيل أكثر (20 حرف على الأقل)','err'); return; }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.innerHTML = '⏳ جارٍ الإرسال...';
+
+  const ref = generateRef();
+  const payload = {
+    ref,
+    name:       (anon || !name) ? 'مجهول' : name,
+    real_name:  name || 'مجهول',
+    email:      email || '-',
+    phone:      document.getElementById('fPhone').value || '',
+    role, type, sector, priority, subject, body, anon,
+    status:     'جديدة',
+    notes:      '',
+    date:       new Date().toLocaleDateString('ar-EG'),
+    timestamp:  Date.now()
+  };
+
+  try {
+    await sbPost('complaints', payload);
+    document.getElementById('modalRef').innerHTML = `<small>الرقم المرجعي</small>${ref}`;
+    document.getElementById('successModal').classList.add('show');
+    resetForm();
+    await loadComplaints();
+    showToast('✅ تم إرسال الشكوى بنجاح');
+  } catch(e) {
+    console.error('Submit error:', e);
+    showToast('❌ خطأ في الإرسال: ' + (e.message||'تحقق من الاتصال'), 'err');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '✉️ إرسال الشكوى / المقترح';
+  }
+};
+
+window.closeModal = function() { document.getElementById('successModal').classList.remove('show'); };
+
+window.goTrack = function() {
+  window.closeModal();
+  const ref = document.getElementById('modalRef').textContent.replace('الرقم المرجعي','').trim();
+  window.showPublicView('trackView', document.querySelectorAll('.pnav-item')[1]);
+  document.getElementById('trackRef').value = ref;
+  window.trackComplaint();
+};
+
+// ═══ TRACK ═══
+window.trackComplaint = function() {
+  const ref = document.getElementById('trackRef').value.trim().toUpperCase();
+  const c   = ALL_COMPLAINTS.find(x => x.ref === ref);
+  const box = document.getElementById('trackResult');
+  if(!c) {
+    box.innerHTML = `<div style="text-align:center;color:#e74c3c;padding:1rem">❌ لم يتم العثور على شكوى بهذا الرقم.<br><small style="color:var(--gray)">تأكد من الرقم وحاول مرة أخرى</small></div>`;
+    box.classList.add('show'); return;
+  }
+  box.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem">
+      <div class="ref-code">${c.ref}</div>${getStatusBadge(c.status)}
+    </div>
+    <div class="track-detail">
+      <div class="track-detail-row"><span class="lbl">📌 الموضوع</span><span class="val">${c.subject}</span></div>
+      <div class="track-detail-row"><span class="lbl">📂 النوع</span><span class="val">${c.type}</span></div>
+      <div class="track-detail-row"><span class="lbl">🏛️ القطاع</span><span class="val">${c.sector}</span></div>
+      <div class="track-detail-row"><span class="lbl">🚦 الأولوية</span><span class="val">${getPriorityBadge(c.priority)}</span></div>
+      <div class="track-detail-row"><span class="lbl">📅 تاريخ التقديم</span><span class="val">${c.date}</span></div>
+      ${c.notes ? `<div class="track-detail-row"><span class="lbl">📝 رد الإدارة</span><span class="val" style="color:var(--gold-light)">${c.notes}</span></div>` : ''}
+    </div>`;
+  box.classList.add('show');
+};
+
+// ═══ ADMIN AUTH ═══
+window.adminLogin = function() {
+  const pass = document.getElementById('adminPass').value;
+  if(pass === SETTINGS.password) {
+    adminLoggedIn = true;
+    document.getElementById('loginErr').classList.remove('show');
+    document.getElementById('adminPass').value = '';
+    showAdminDash();
+  } else {
+    document.getElementById('loginErr').classList.add('show');
+    document.getElementById('adminPass').value = '';
+  }
+};
+
+window.adminLogout = function() {
+  adminLoggedIn = false;
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('formView').classList.add('active');
+  document.getElementById('publicNav').style.display = '';
+  document.querySelectorAll('.pnav-item')[0].classList.add('active');
+};
+
+// ═══ DASHBOARD ═══
+function updateAdminCounters() {
+  const c = ALL_COMPLAINTS;
+  const newOnes = c.filter(x=>x.status==='جديدة').length;
+  document.getElementById('kpi1').textContent = c.length;
+  document.getElementById('kpi2').textContent = c.filter(x=>x.status==='قيد المراجعة').length;
+  document.getElementById('kpi3').textContent = c.filter(x=>x.status==='تمت المعالجة').length;
+  document.getElementById('kpi4').textContent = c.filter(x=>x.priority==='عالية').length;
+  document.getElementById('kpiTrend1').textContent = newOnes + ' جديدة';
+  document.getElementById('newBadge').textContent  = newOnes;
+  document.getElementById('lastUpdate').textContent = '🔄 ' + new Date().toLocaleTimeString('ar-EG');
+}
+
+function renderSectorChart() {
+  const sectors = ["قطاع عميد الكلية","قطاع شئون التعليم والطلاب","قطاع شئون الدراسات العليا والبحوث","قطاع شئون تنمية البيئة وخدمة المجتمع"];
+  const max = Math.max(1,...sectors.map(s=>ALL_COMPLAINTS.filter(c=>c.sector===s).length));
+  document.getElementById('sectorChart').innerHTML = sectors.map(s=>{
+    const count=ALL_COMPLAINTS.filter(c=>c.sector===s).length;
+    const pct=Math.round((count/max)*100);
+    return `<div class="bar-row"><div class="bar-lbl">${s.replace('قطاع شئون ','').replace('قطاع ','')}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct}%" data-val="${count}"></div></div></div>`;
+  }).join('') || '<div style="color:var(--gray);text-align:center;padding:2rem">لا توجد بيانات</div>';
+}
+
+function renderDonut() {
+  const types=['شكوى','مقترح','استفسار','طلب'];
+  const colors=['#c8a94a','#3498db','#27ae60','#9b59b6'];
+  const total=ALL_COMPLAINTS.length||1;
+  const counts=types.map(t=>ALL_COMPLAINTS.filter(c=>c.type===t).length);
+  let offset=0,paths='';
+  counts.forEach((count,i)=>{
+    const pct=count/total,angle=pct*2*Math.PI;
+    if(pct===0){offset+=angle;return;}
+    const x1=50+35*Math.cos(offset-Math.PI/2),y1=50+35*Math.sin(offset-Math.PI/2);
+    offset+=angle;
+    const x2=50+35*Math.cos(offset-Math.PI/2),y2=50+35*Math.sin(offset-Math.PI/2);
+    paths+=`<path d="M50,50 L${x1},${y1} A35,35 0 ${pct>0.5?1:0},1 ${x2},${y2} Z" fill="${colors[i]}" opacity="0.85"/>`;
+  });
+  document.getElementById('donutSvg').innerHTML=paths+
+    `<circle cx="50" cy="50" r="20" fill="#0a1628"/><text x="50" y="55" text-anchor="middle" font-size="8" fill="white" font-family="Cairo">${ALL_COMPLAINTS.length}</text>`;
+  document.getElementById('donutLegend').innerHTML=types.map((t,i)=>
+    `<div class="legend-item"><div class="legend-dot" style="background:${colors[i]}"></div>${t} (${counts[i]})</div>`).join('');
+}
+
+function renderRecentTable() {
+  const rows=ALL_COMPLAINTS.slice(0,10);
+  document.getElementById('recentTableBody').innerHTML = !rows.length
+    ? '<tr><td colspan="8" class="empty-state"><div class="empty-icon">📭</div>لا توجد شكاوى بعد</td></tr>'
+    : rows.map(c=>`<tr>
+        <td><span class="ref-code">${c.ref}</span></td>
+        <td>${c.anon?'🕵️ مجهول':c.name}</td>
+        <td>${c.type}</td>
+        <td style="font-size:0.77rem">${c.sector.replace('قطاع شئون ','').replace('قطاع ','')}</td>
+        <td>${getPriorityBadge(c.priority)}</td>
+        <td>${getStatusBadge(c.status)}</td>
+        <td style="font-size:0.78rem;color:var(--gray)">${c.date}</td>
+        <td><div class="action-btns">
+          <button class="act-btn act-view" onclick="openDetail('${c.id}')" title="عرض">👁️</button>
+          <button class="act-btn act-delete" onclick="delComplaint('${c.id}')" title="حذف">🗑️</button>
+        </div></td></tr>`).join('');
+}
+
+// ═══ TABLE ═══
+window.setFilter = function(f,btn) {
+  currentFilter=f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  renderTable();
+};
+
+function renderTable() {
+  const search=(document.getElementById('searchInput')?.value||'').toLowerCase();
+  let data=ALL_COMPLAINTS;
+  if(currentFilter) data=data.filter(c=>c.status===currentFilter);
+  if(search) data=data.filter(c=>
+    (c.name||'').toLowerCase().includes(search)||
+    (c.ref||'').toLowerCase().includes(search)||
+    (c.subject||'').toLowerCase().includes(search)||
+    (c.sector||'').includes(search)||
+    (c.type||'').includes(search));
+  const tbody=document.getElementById('mainTableBody');
+  tbody.innerHTML = !data.length
+    ? '<tr><td colspan="9" class="empty-state"><div class="empty-icon">📭</div>لا توجد شكاوى مطابقة</td></tr>'
+    : data.map(c=>`<tr>
+        <td><span class="ref-code">${c.ref}</span></td>
+        <td>${c.anon?'🕵️ مجهول':c.name}</td>
+        <td>${c.type}</td>
+        <td style="font-size:0.77rem">${c.sector.replace('قطاع شئون ','').replace('قطاع ','')}</td>
+        <td style="font-size:0.82rem;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${c.subject}">${c.subject}</td>
+        <td>${getPriorityBadge(c.priority)}</td>
+        <td>${getStatusBadge(c.status)}</td>
+        <td style="font-size:0.78rem;color:var(--gray)">${c.date}</td>
+        <td><div class="action-btns">
+          <button class="act-btn act-view" onclick="openDetail('${c.id}')" title="عرض">👁️</button>
+          <button class="act-btn act-edit" onclick="openDetail('${c.id}')" title="تعديل">✏️</button>
+          <button class="act-btn act-delete" onclick="delComplaint('${c.id}')" title="حذف">🗑️</button>
+        </div></td></tr>`).join('');
+}
+
+// ═══ DETAIL MODAL ═══
+window.openDetail = function(id) {
+  const c=ALL_COMPLAINTS.find(x=>x.id===id);
+  if(!c) return;
+  currentDetailId=id;
+  document.getElementById('detailTitle').textContent=c.subject;
+  document.getElementById('detailRef').textContent=c.ref;
+  document.getElementById('detailStatusSelect').value=c.status;
+  document.getElementById('detailNotes').value=c.notes||'';
+  document.getElementById('detailContent').innerHTML=`
+    <div class="detail-field"><label>👤 مقدم الشكوى</label><p>${c.anon?'🕵️ مجهول الهوية':c.realName}</p></div>
+    ${!c.anon&&c.email!=='-'?`<div class="detail-field"><label>📧 البريد</label><p style="direction:ltr">${c.email}</p></div>`:''}
+    ${c.phone?`<div class="detail-field"><label>📱 الهاتف</label><p style="direction:ltr">${c.phone}</p></div>`:''}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem">
+      <div class="detail-field"><label>🎭 الصفة</label><p>${c.role}</p></div>
+      <div class="detail-field"><label>📂 النوع</label><p>${c.type}</p></div>
+      <div class="detail-field"><label>🏛️ القطاع</label><p style="font-size:0.8rem">${c.sector}</p></div>
+      <div class="detail-field"><label>🚦 الأولوية</label><p>${getPriorityBadge(c.priority)}</p></div>
+    </div>
+    <div class="detail-field"><label>📝 التفاصيل</label><p>${c.body}</p></div>
+    <div class="detail-field"><label>📅 تاريخ التقديم</label><p>${c.date}</p></div>`;
+  document.getElementById('detailModal').classList.add('show');
+};
+
+window.closeDetail = function() {
+  document.getElementById('detailModal').classList.remove('show');
+  currentDetailId=null;
+};
+
+window.saveDetailStatus = async function() {
+  if(!currentDetailId) return;
+  try {
+    await sbPatch('complaints', currentDetailId, {
+      status: document.getElementById('detailStatusSelect').value,
+      notes:  document.getElementById('detailNotes').value
+    });
+    await loadComplaints();
+    window.closeDetail();
+    showToast('✅ تم حفظ التغييرات بنجاح');
+  } catch(e) { showToast('❌ خطأ في الحفظ: '+e.message,'err'); }
+};
+
+window.delComplaint = async function(id) {
+  if(!confirm('هل أنت متأكد من حذف هذه الشكوى؟')) return;
+  try {
+    await sbDelete('complaints', id);
+    await loadComplaints();
+    showToast('🗑️ تم حذف الشكوى');
+  } catch(e) { showToast('❌ خطأ في الحذف','err'); }
+};
+
+// ═══ SETTINGS ═══
+function renderSettings() {
+  document.getElementById('settCollegeName').value  = SETTINGS.college_name||'';
+  document.getElementById('settDeanName').value     = SETTINGS.dean_name||'';
+  document.getElementById('settEmailGeneral').value = SETTINGS.email_general||'';
+  const sectors=["قطاع عميد الكلية","قطاع شئون التعليم والطلاب","قطاع شئون الدراسات العليا والبحوث","قطاع شئون تنمية البيئة وخدمة المجتمع"];
+  document.getElementById('sectorEmailsList').innerHTML=sectors.map(s=>{
+    const key='se_'+btoa(encodeURIComponent(s)).replace(/[^a-zA-Z0-9]/g,'').substring(0,20);
+    const val=(SETTINGS.sector_emails||{})[s]||'';
+    return `<div class="email-sector-row">
+      <div class="email-sector-name">📧 ${s.replace('قطاع شئون ','').replace('قطاع ','')}</div>
+      <input type="email" class="email-sector-input" id="${key}" value="${val}" placeholder="email@mans.edu.eg" data-sector="${s}">
+    </div>`;
+  }).join('');
+  const c=ALL_COMPLAINTS;
+  document.getElementById('systemStats').innerHTML=[
+    ['إجمالي الشكاوى',c.length],
+    ['شكاوى جديدة',c.filter(x=>x.status==='جديدة').length],
+    ['قيد المراجعة',c.filter(x=>x.status==='قيد المراجعة').length],
+    ['تمت المعالجة',c.filter(x=>x.status==='تمت المعالجة').length],
+    ['شكاوى مجهولة',c.filter(x=>x.anon).length],
+  ].map(([l,v])=>`<div style="display:flex;justify-content:space-between;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.05)"><span>${l}</span><strong style="color:var(--gold-light)">${v}</strong></div>`).join('');
+}
+
+window.saveSettings = async function() {
+  SETTINGS.college_name  = document.getElementById('settCollegeName').value;
+  SETTINGS.dean_name     = document.getElementById('settDeanName').value;
+  SETTINGS.email_general = document.getElementById('settEmailGeneral').value;
+  try {
+    await sbPatchText('settings','id=eq.main',{
+      college_name:  SETTINGS.college_name,
+      dean_name:     SETTINGS.dean_name,
+      email_general: SETTINGS.email_general
+    });
+    showToast('✅ تم حفظ الإعدادات');
+  } catch(e) { showToast('❌ خطأ: '+e.message,'err'); }
+};
+
+window.saveSectorEmails = async function() {
+  const inputs=document.querySelectorAll('.email-sector-input');
+  const emails={};
+  inputs.forEach(el=>{ if(el.dataset.sector) emails[el.dataset.sector]=el.value.trim(); });
+  SETTINGS.sector_emails=emails;
+  try {
+    await sbPatchText('settings','id=eq.main',{sector_emails: emails});
+    showToast('✅ تم حفظ إيميلات القطاعات');
+  } catch(e) { showToast('❌ خطأ: '+e.message,'err'); }
+};
+
+window.changePass = async function() {
+  const curr=document.getElementById('currPass').value;
+  const np=document.getElementById('newPass').value;
+  const cp=document.getElementById('confPass').value;
+  if(curr!==SETTINGS.password){ showToast('❌ كلمة المرور الحالية غير صحيحة','err'); return; }
+  if(np.length<6){ showToast('❌ كلمة المرور قصيرة جداً','err'); return; }
+  if(np!==cp){ showToast('❌ كلمتا المرور غير متطابقتين','err'); return; }
+  SETTINGS.password=np;
+  try {
+    await sbPatchText('settings','id=eq.main',{password:np});
+    ['currPass','newPass','confPass'].forEach(id=>document.getElementById(id).value='');
+    showToast('✅ تم تغيير كلمة المرور');
+  } catch(e) { showToast('❌ خطأ: '+e.message,'err'); }
+};
+
+window.clearAll = async function() {
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/complaints?timestamp=gt.0`,{
+      method:'DELETE',
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
+    });
+    await loadComplaints();
+    showToast('🗑️ تم مسح جميع البيانات');
+  } catch(e) { showToast('❌ خطأ','err'); }
+};
+
+// ═══ EXPORT ═══
+window.exportCSV = function() {
+  const headers=['الرقم المرجعي','الاسم','الصفة','البريد','النوع','القطاع','الموضوع','الأولوية','الحالة','التاريخ'];
+  const rows=ALL_COMPLAINTS.map(c=>[c.ref,c.anon?'مجهول':c.name,c.role,c.anon?'-':c.email,c.type,c.sector,c.subject,c.priority,c.status,c.date]);
+  const csv='\uFEFF'+headers.join(',')+('\n')+rows.map(r=>r.map(v=>`"${v||''}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download='complaints_'+Date.now()+'.csv'; a.click();
+};
+
+// ═══ HELPERS ═══
+function getStatusBadge(s) {
+  const map={'جديدة':'status-new','قيد المراجعة':'status-review','تمت المعالجة':'status-done','مغلقة':'status-closed'};
+  const ico={'جديدة':'🆕','قيد المراجعة':'⏳','تمت المعالجة':'✅','مغلقة':'🔒'};
+  return `<span class="status-badge ${map[s]||'status-new'}">${ico[s]||''} ${s}</span>`;
+}
+function getPriorityBadge(p) {
+  const map={'عالية':'priority-high','متوسطة':'priority-medium','منخفضة':'priority-low'};
+  const ico={'عالية':'🔴','متوسطة':'🟡','منخفضة':'🟢'};
+  return `<span class="${map[p]||''}">${ico[p]||''} ${p}</span>`;
+}
+function updatePublicStats() {
+  const c=ALL_COMPLAINTS;
+  document.getElementById('statTotal').textContent    = c.length;
+  document.getElementById('statResolved').textContent = c.filter(x=>x.status==='تمت المعالجة').length;
+  document.getElementById('statPending').textContent  = c.filter(x=>x.status==='قيد المراجعة'||x.status==='جديدة').length;
+}
+let toastTimer;
+function showToast(msg,type='ok') {
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.style.background=type==='err'?'linear-gradient(135deg,#2a0a0a,#350d0d)':'linear-gradient(135deg,#0a2a12,#0d3516)';
+  t.style.color=type==='err'?'#e74c3c':'#52be80';
+  t.style.borderColor=type==='err'?'rgba(231,76,60,0.4)':'rgba(39,174,96,0.4)';
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+// ═══ START ═══
+init();
+</script>
+</body>
+</html>
