@@ -428,6 +428,46 @@
   ::-webkit-scrollbar-track{background:rgba(255,255,255,0.03)}
   ::-webkit-scrollbar-thumb{background:rgba(200,169,74,0.3);border-radius:3px}
   ::-webkit-scrollbar-thumb:hover{background:rgba(200,169,74,0.5)}
+  /* FILE UPLOAD */
+  #dropZone:hover { border-color:var(--gold)!important; background:rgba(200,169,74,0.06)!important; }
+  .file-preview-box { display:flex; align-items:center; gap:0.6rem; background:rgba(200,169,74,0.08);
+    border:1px solid rgba(200,169,74,0.3); border-radius:8px; padding:0.5rem 0.8rem; font-size:0.82rem; }
+  .file-preview-box .file-icon { font-size:1.4rem; }
+  .file-preview-box .file-name { color:var(--gold-light); font-weight:600; flex:1; overflow:hidden;
+    text-overflow:ellipsis; white-space:nowrap; }
+  .file-remove { background:rgba(231,76,60,0.2); border:none; border-radius:6px; padding:3px 8px;
+    color:#e74c3c; cursor:pointer; font-size:0.75rem; }
+  /* CUSTOM FIELDS */
+  .custom-field-group { display:flex; flex-direction:column; gap:0.4rem; margin-bottom:1rem; }
+  .custom-field-group label { font-size:0.8rem; font-weight:600; color:var(--gold-light); }
+  /* REPORTS */
+  .report-card { background:linear-gradient(145deg,rgba(16,32,64,0.9),rgba(10,22,40,0.95));
+    border:1px solid rgba(255,255,255,0.07); border-radius:16px; padding:1.5rem; margin-bottom:1rem; }
+  .report-card h3 { font-size:0.9rem; font-weight:700; color:var(--gold-light); margin-bottom:1rem; }
+  .report-stat-row { display:flex; justify-content:space-between; padding:0.5rem 0;
+    border-bottom:1px solid rgba(255,255,255,0.05); font-size:0.85rem; }
+  .report-stat-row:last-child { border:none; }
+  .report-stat-row .rlbl { color:var(--gray); }
+  .report-stat-row .rval { color:var(--white); font-weight:700; }
+  .report-period-btn { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);
+    border-radius:8px; padding:0.4rem 1rem; cursor:pointer; font-family:'Cairo',sans-serif;
+    font-size:0.8rem; color:var(--gray); transition:all 0.25s; }
+  .report-period-btn.active,.report-period-btn:hover { background:rgba(200,169,74,0.15);
+    border-color:var(--gold); color:var(--gold-light); }
+  /* FORM BUILDER */
+  .field-builder-row { display:flex; gap:0.5rem; align-items:center; margin-bottom:0.6rem;
+    background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07);
+    border-radius:10px; padding:0.7rem 0.9rem; }
+  .field-builder-row .fb-label { flex:1; color:var(--white); font-size:0.85rem; font-weight:600; }
+  .field-builder-row .fb-type { font-size:0.75rem; color:var(--gray); }
+  .fb-del { background:rgba(231,76,60,0.15); border:none; border-radius:6px; padding:4px 9px;
+    color:#e74c3c; cursor:pointer; font-size:0.8rem; }
+  .fb-toggle { background:rgba(39,174,96,0.15); border:1px solid rgba(39,174,96,0.3);
+    border-radius:6px; padding:3px 8px; color:#52be80; cursor:pointer; font-size:0.75rem; }
+  /* ADMIN ATTACHMENT */
+  .admin-attach-preview { background:rgba(30,77,153,0.1); border:1px solid rgba(30,77,153,0.2);
+    border-radius:10px; padding:0.7rem; margin-top:0.5rem; display:flex; align-items:center; gap:0.6rem; }
+
   @media(max-width:700px){
     .header-text h1{font-size:1.1rem} .admin-sidebar{width:55px}
     .nav-item span.nav-label{display:none} .nav-section-title{display:none}
@@ -558,6 +598,7 @@
             <option value="قطاع شئون التعليم والطلاب">🎓 قطاع شئون التعليم والطلاب</option>
             <option value="قطاع شئون الدراسات العليا والبحوث">🔬 قطاع شئون الدراسات العليا والبحوث</option>
             <option value="قطاع شئون تنمية البيئة وخدمة المجتمع">🌱 قطاع شئون تنمية البيئة وخدمة المجتمع</option>
+            <option value="العيادة الطبية">🏥 العيادة الطبية</option>
           </select>
         </div>
         <div class="form-group" style="margin-bottom:1rem">
@@ -582,6 +623,21 @@
           <input type="checkbox" id="fAnon" style="width:16px;height:16px;accent-color:var(--gold);cursor:pointer">
           <label for="fAnon" style="cursor:pointer">تقديم بشكل مجهول (لن يظهر اسمك للإدارة)</label>
         </div>
+        <!-- ATTACHMENT UPLOAD -->
+        <div class="form-group" style="margin-bottom:1rem">
+          <label>📎 إرفاق ملف (اختياري) <span style="font-size:0.72rem;color:var(--gray);font-weight:400">صورة أو PDF أو مقطع صوتي</span></label>
+          <div id="dropZone" onclick="document.getElementById('fAttachment').click()"
+            style="border:2px dashed rgba(200,169,74,0.3);border-radius:12px;padding:1.2rem;text-align:center;cursor:pointer;transition:all 0.3s;background:rgba(255,255,255,0.03)">
+            <div id="dropZoneText" style="color:var(--gray);font-size:0.85rem">
+              📂 اضغط هنا لاختيار ملف أو اسحبه هنا<br>
+              <span style="font-size:0.75rem;color:rgba(255,255,255,0.3)">PNG, JPG, PDF, MP3, MP4 — حد أقصى 10MB</span>
+            </div>
+            <div id="dropZonePreview" style="display:none;margin-top:0.5rem"></div>
+          </div>
+          <input type="file" id="fAttachment" accept="image/*,.pdf,audio/*,video/mp4" style="display:none" onchange="handleFileSelect(this)">
+        </div>
+        <!-- CUSTOM FIELDS -->
+        <div id="customFieldsContainer"></div>
         <button class="submit-btn" id="submitBtn" onclick="submitComplaint()">✉️ إرسال الشكوى / المقترح</button>
       </div>
     </div>
@@ -670,6 +726,9 @@
         <div class="nav-item" onclick="filterAndShow('قيد المراجعة')"><span class="nav-icon">⏳</span><span class="nav-label">قيد المراجعة</span></div>
         <div class="nav-item" onclick="filterAndShow('تمت المعالجة')"><span class="nav-icon">✅</span><span class="nav-label">تمت المعالجة</span></div>
         <div class="nav-item" onclick="filterAndShow('مغلقة')"><span class="nav-icon">🔒</span><span class="nav-label">مغلقة</span></div>
+        <div class="nav-section-title">أدوات</div>
+        <div class="nav-item" onclick="showAdminSub('reportsView',this)"><span class="nav-icon">📈</span><span class="nav-label">التقارير</span></div>
+        <div class="nav-item" onclick="showAdminSub('formBuilderView',this)"><span class="nav-icon">🛠️</span><span class="nav-label">بناء النموذج</span></div>
         <div class="nav-section-title">الإعدادات</div>
         <div class="nav-item" onclick="showAdminSub('settingsView',this)"><span class="nav-icon">⚙️</span><span class="nav-label">الإعدادات</span></div>
         <div class="nav-item" onclick="adminLogout()"><span class="nav-icon">🚪</span><span class="nav-label">تسجيل الخروج</span></div>
@@ -760,6 +819,65 @@
         </div>
       </div>
 
+      <!-- ─ Reports View ─ -->
+      <div class="admin-sub-view" id="reportsView">
+        <div class="page-title"><div class="title-line"></div>التقارير الدورية
+          <div style="display:flex;gap:0.5rem;margin-right:auto;flex-wrap:wrap">
+            <button class="report-period-btn active" onclick="setReportPeriod('week',this)">📅 أسبوعي</button>
+            <button class="report-period-btn" onclick="setReportPeriod('month',this)">📆 شهري</button>
+            <button class="report-period-btn" onclick="setReportPeriod('all',this)">📊 الكل</button>
+            <button class="export-btn" onclick="exportReportCSV()">📥 تصدير CSV</button>
+          </div>
+        </div>
+        <div id="reportContent"></div>
+      </div>
+
+      <!-- ─ Form Builder View ─ -->
+      <div class="admin-sub-view" id="formBuilderView">
+        <div class="page-title"><div class="title-line"></div>بناء النموذج وإدارة الأسئلة</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:1.2rem">
+          <div class="settings-card">
+            <h3>➕ إضافة سؤال جديد</h3>
+            <div class="settings-row"><label>نص السؤال / الحقل</label>
+              <input type="text" class="settings-input" id="newFieldLabel" placeholder="مثال: اسم القسم الدراسي"></div>
+            <div class="settings-row"><label>نوع الحقل</label>
+              <select class="settings-input" id="newFieldType" onchange="toggleOptionsRow()">
+                <option value="text">نص قصير</option>
+                <option value="textarea">نص طويل</option>
+                <option value="select">قائمة اختيار</option>
+                <option value="radio">اختيار واحد (Radio)</option>
+                <option value="checkbox">اختيار متعدد</option>
+              </select></div>
+            <div class="settings-row" id="optionsRow" style="display:none"><label>الخيارات (افصل بفاصلة)</label>
+              <input type="text" class="settings-input" id="newFieldOptions" placeholder="خيار1, خيار2, خيار3"></div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:1rem">
+              <input type="checkbox" id="newFieldRequired" style="width:16px;height:16px;accent-color:var(--gold)">
+              <label for="newFieldRequired" style="font-size:0.82rem;color:var(--gray)">حقل إلزامي</label>
+            </div>
+            <button class="save-settings-btn" onclick="addCustomField()">➕ إضافة الحقل للنموذج</button>
+          </div>
+          <div class="settings-card">
+            <h3>📋 الأسئلة المضافة حالياً</h3>
+            <div id="customFieldsList"><div style="color:var(--gray);text-align:center;padding:2rem;font-size:0.85rem">لا توجد أسئلة مضافة بعد</div></div>
+          </div>
+        </div>
+        <div class="settings-card">
+          <h3>🔒 الحقول الأساسية للنظام (لا يمكن حذفها)</h3>
+          <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.5rem">
+            <span style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.4rem 0.9rem;font-size:0.8rem;color:var(--gray)">👤 الاسم</span>
+            <span style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.4rem 0.9rem;font-size:0.8rem;color:var(--gray)">📧 البريد الإلكتروني</span>
+            <span style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.4rem 0.9rem;font-size:0.8rem;color:var(--gray)">🎭 الصفة</span>
+            <span style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.4rem 0.9rem;font-size:0.8rem;color:var(--gray)">📂 نوع التقديم</span>
+            <span style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.4rem 0.9rem;font-size:0.8rem;color:var(--gray)">🏛️ القطاع</span>
+            <span style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.4rem 0.9rem;font-size:0.8rem;color:var(--gray)">🚦 الأولوية</span>
+            <span style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.4rem 0.9rem;font-size:0.8rem;color:var(--gray)">📌 الموضوع</span>
+            <span style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.4rem 0.9rem;font-size:0.8rem;color:var(--gray)">📝 التفاصيل</span>
+            <span style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.4rem 0.9rem;font-size:0.8rem;color:var(--gray)">📎 المرفق</span>
+          </div>
+        </div>
+      </div>
+
+
     </div>
   </div>
 </div>
@@ -804,7 +922,25 @@
         <label style="font-size:0.78rem;color:var(--gold-light);font-weight:700;display:block;margin-bottom:6px">📝 رد / ملاحظات الإدارة</label>
         <textarea class="notes-area" id="detailNotes" placeholder="أضف ردك أو ملاحظاتك هنا..."></textarea>
       </div>
-      <button class="save-status-btn" onclick="saveDetailStatus()">💾 حفظ التغييرات</button>
+      <!-- Admin attachment -->
+      <div class="form-group" style="margin-top:0.8rem">
+        <label style="font-size:0.78rem;color:var(--gold-light);font-weight:700;display:block;margin-bottom:6px">📎 إرفاق ملف مع الرد (اختياري)</label>
+        <div style="display:flex;gap:0.5rem;align-items:center">
+          <input type="file" id="adminAttachment" accept="image/*,.pdf" style="display:none" onchange="handleAdminFile(this)">
+          <button onclick="document.getElementById('adminAttachment').click()"
+            style="background:rgba(30,77,153,0.2);border:1px solid rgba(30,77,153,0.4);border-radius:8px;padding:0.5rem 1rem;color:var(--gray);font-family:'Cairo',sans-serif;font-size:0.8rem;cursor:pointer">
+            📎 اختيار ملف
+          </button>
+          <span id="adminFileName" style="font-size:0.78rem;color:var(--gray)">لم يتم اختيار ملف</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:0.6rem;flex-wrap:wrap;margin-top:0.8rem">
+        <button class="save-status-btn" onclick="saveDetailStatus()">💾 حفظ التغييرات</button>
+        <button onclick="downloadComplaintPDF()" 
+          style="background:rgba(39,174,96,0.15);border:1px solid rgba(39,174,96,0.3);border-radius:10px;padding:0.65rem 1.5rem;color:#52be80;font-family:'Cairo',sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;transition:all 0.3s">
+          📥 تحميل كملف
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -829,338 +965,347 @@
 const SUPABASE_URL = "https://cafojuyjtigatwdoptpd.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhZm9qdXlqdGlnYXR3ZG9wdHBkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjM5MjQsImV4cCI6MjA5Mjg5OTkyNH0.C3mDJuvs73W-5pIlL3l60roPRDONPqQXTy4Lsjww8Ng";
 
-// ═══ SIMPLE FETCH HELPERS ═══
+// ═══ FETCH HELPERS ═══
 async function sbGet(table, params='') {
   const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params}`, {
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_KEY,
-      'Content-Type': 'application/json'
-    }
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' }
   });
   if(!r.ok) throw new Error(await r.text());
   return r.json();
 }
-
 async function sbPost(table, data) {
   const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
-    method: 'POST',
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_KEY,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=representation'
-    },
+    method:'POST', headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation'},
     body: JSON.stringify(data)
   });
   if(!r.ok) throw new Error(await r.text());
   return r.json();
 }
-
 async function sbPatch(table, id, data) {
   const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
-    method: 'PATCH',
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_KEY,
-      'Content-Type': 'application/json'
-    },
+    method:'PATCH', headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'},
     body: JSON.stringify(data)
   });
   if(!r.ok) throw new Error(await r.text());
   return true;
 }
-
 async function sbPatchText(table, filter, data) {
   const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filter}`, {
-    method: 'PATCH',
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_KEY,
-      'Content-Type': 'application/json'
-    },
+    method:'PATCH', headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'},
     body: JSON.stringify(data)
   });
   if(!r.ok) throw new Error(await r.text());
   return true;
 }
-
 async function sbDelete(table, id) {
   const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
-    method: 'DELETE',
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_KEY
-    }
+    method:'DELETE', headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
   });
   if(!r.ok) throw new Error(await r.text());
   return true;
+}
+async function uploadFile(file) {
+  const ext  = file.name.split('.').pop();
+  const name = `${Date.now()}_${Math.random().toString(36).substr(2,8)}.${ext}`;
+  const r = await fetch(`${SUPABASE_URL}/storage/v1/object/attachments/${name}`, {
+    method:'POST', headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':file.type},
+    body: file
+  });
+  if(!r.ok) throw new Error(await r.text());
+  return { url:`${SUPABASE_URL}/storage/v1/object/public/attachments/${name}`, name:file.name, type:file.type };
 }
 
 // ═══ STATE ═══
 let SETTINGS = {
-  password: 'Eng#2026',
-  college_name: 'كلية الهندسة جامعة المنصورة',
-  dean_name: 'أ.د. شريف مسعد البدوي',
-  email_general: '',
-  sector_emails: {
-    'قطاع عميد الكلية': '',
-    'قطاع شئون التعليم والطلاب': '',
-    'قطاع شئون الدراسات العليا والبحوث': '',
-    'قطاع شئون تنمية البيئة وخدمة المجتمع': ''
-  }
+  password:'Eng#2026', college_name:'كلية الهندسة جامعة المنصورة',
+  dean_name:'أ.د. شريف مسعد البدوي', email_general:'',
+  sector_emails:{'قطاع عميد الكلية':'','قطاع شئون التعليم والطلاب':'','قطاع شئون الدراسات العليا والبحوث':'','قطاع شئون تنمية البيئة وخدمة المجتمع':'','العيادة الطبية':''}
 };
 let ALL_COMPLAINTS  = [];
+let CUSTOM_FIELDS   = [];
 let currentFilter   = '';
 let currentDetailId = null;
 let adminLoggedIn   = false;
 let pollInterval    = null;
+let selectedFile    = null;
+let adminFile       = null;
+let reportPeriod    = 'week';
 
 // ═══ INIT ═══
 async function init() {
-  setFbStatus('loading', 'جارٍ الاتصال...');
+  setFbStatus('loading','جارٍ الاتصال...');
   try {
     await loadSettings();
     await loadComplaints();
-    setFbStatus('online', 'متصل بـ Supabase ✓');
+    await loadCustomFields();
+    setFbStatus('online','متصل بـ Supabase ✓');
     startPolling();
+    renderCustomFieldsInForm();
   } catch(e) {
-    console.error('Init error:', e);
-    setFbStatus('offline', 'خطأ في الاتصال — تحقق من الإنترنت');
+    console.error('Init error:',e);
+    setFbStatus('offline','خطأ في الاتصال');
   }
 }
 
 function setFbStatus(state, text) {
-  const dot  = document.getElementById('fbDot');
-  const span = document.getElementById('fbText');
-  dot.className = 'fb-dot ' + state;
-  span.textContent = text;
+  const dot=document.getElementById('fbDot'), span=document.getElementById('fbText');
+  dot.className='fb-dot '+state; span.textContent=text;
 }
 
-// ═══ POLLING (تحديث كل 10 ثواني) ═══
 function startPolling() {
   if(pollInterval) clearInterval(pollInterval);
-  pollInterval = setInterval(async () => {
-    try {
-      await loadComplaints();
-      setFbStatus('online', 'متصل — ' + ALL_COMPLAINTS.length + ' شكوى');
-    } catch(e) {
-      setFbStatus('offline', 'انقطع الاتصال');
-    }
-  }, 10000);
+  pollInterval = setInterval(async()=>{
+    try { await loadComplaints(); setFbStatus('online','متصل — '+ALL_COMPLAINTS.length+' شكوى'); }
+    catch(e){ setFbStatus('offline','انقطع الاتصال'); }
+  }, 12000);
 }
 
-// ═══ LOAD SETTINGS ═══
 async function loadSettings() {
   try {
-    const rows = await sbGet('settings', 'id=eq.main');
-    if(rows && rows.length > 0) {
-      const s = rows[0];
-      SETTINGS = {
-        password:      s.password      || 'Eng#2026',
-        college_name:  s.college_name  || 'كلية الهندسة جامعة المنصورة',
-        dean_name:     s.dean_name     || 'أ.د. شريف مسعد البدوي',
-        email_general: s.email_general || '',
-        sector_emails: s.sector_emails || {}
-      };
+    const rows = await sbGet('settings','id=eq.main');
+    if(rows&&rows.length>0) {
+      const s=rows[0];
+      SETTINGS={password:s.password||'Eng#2026',college_name:s.college_name||'كلية الهندسة جامعة المنصورة',
+        dean_name:s.dean_name||'أ.د. شريف مسعد البدوي',email_general:s.email_general||'',
+        sector_emails:s.sector_emails||{}};
     }
-  } catch(e) {
-    console.warn('Settings load failed, using defaults');
-  }
+  } catch(e){ console.warn('Settings fallback'); }
 }
 
-// ═══ LOAD COMPLAINTS ═══
 async function loadComplaints() {
-  const rows = await sbGet('complaints', 'order=timestamp.desc&limit=500');
-  ALL_COMPLAINTS = (rows || []).map(r => ({
-    id:         r.id,
-    ref:        r.ref,
-    name:       r.name,
-    realName:   r.real_name,
-    email:      r.email,
-    phone:      r.phone,
-    role:       r.role,
-    type:       r.type,
-    sector:     r.sector,
-    priority:   r.priority,
-    subject:    r.subject,
-    body:       r.body,
-    anon:       r.anon,
-    status:     r.status,
-    notes:      r.notes,
-    date:       r.date,
-    timestamp:  r.timestamp
+  const rows = await sbGet('complaints','order=timestamp.desc&limit=1000');
+  ALL_COMPLAINTS=(rows||[]).map(r=>({
+    id:r.id,ref:r.ref,name:r.name,realName:r.real_name,email:r.email,phone:r.phone,
+    role:r.role,type:r.type,sector:r.sector,priority:r.priority,subject:r.subject,
+    body:r.body,anon:r.anon,status:r.status,notes:r.notes,date:r.date,timestamp:r.timestamp,
+    attachmentUrl:r.attachment_url,attachmentName:r.attachment_name,attachmentType:r.attachment_type,
+    adminAttachmentUrl:r.admin_attachment_url,adminAttachmentName:r.admin_attachment_name,
+    customAnswers:r.custom_answers||{}
   }));
   updatePublicStats();
-  if(adminLoggedIn) {
+  if(adminLoggedIn){
     updateAdminCounters();
-    document.getElementById('newBadge').textContent = ALL_COMPLAINTS.filter(c=>c.status==='جديدة').length;
-    if(document.getElementById('dashOverview').classList.contains('active')) {
-      renderSectorChart(); renderDonut(); renderRecentTable();
-    }
+    document.getElementById('newBadge').textContent=ALL_COMPLAINTS.filter(c=>c.status==='جديدة').length;
+    if(document.getElementById('dashOverview').classList.contains('active')){renderSectorChart();renderDonut();renderRecentTable();}
     if(document.getElementById('allComplaints').classList.contains('active')) renderTable();
+    if(document.getElementById('reportsView').classList.contains('active')) renderReport();
   }
 }
 
-// ═══ GENERATE REF ═══
+async function loadCustomFields() {
+  try {
+    const rows = await sbGet('custom_fields','is_active=eq.true&order=sort_order.asc');
+    CUSTOM_FIELDS = rows||[];
+  } catch(e){ CUSTOM_FIELDS=[]; }
+}
+
 function generateRef() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let r = '';
-  for(let i=0;i<6;i++) r += chars[Math.floor(Math.random()*chars.length)];
-  return 'ENG-2026-' + r;
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let r='';
+  for(let i=0;i<6;i++) r+=chars[Math.floor(Math.random()*chars.length)];
+  return 'ENG-2026-'+r;
 }
 
 // ═══ VIEWS ═══
-window.showPublicView = function(id, navEl) {
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+window.showPublicView=function(id,navEl){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  document.getElementById('publicNav').style.display = '';
-  if(navEl) {
-    document.querySelectorAll('.pnav-item').forEach(n => n.classList.remove('active'));
-    navEl.classList.add('active');
-  }
+  document.getElementById('publicNav').style.display='';
+  if(navEl){document.querySelectorAll('.pnav-item').forEach(n=>n.classList.remove('active'));navEl.classList.add('active');}
 };
-
-window.showAdminLogin = function() {
-  if(adminLoggedIn) { showAdminDash(); return; }
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+window.showAdminLogin=function(){
+  if(adminLoggedIn){showAdminDash();return;}
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById('adminLoginView').classList.add('active');
-  document.getElementById('publicNav').style.display = 'none';
+  document.getElementById('publicNav').style.display='none';
 };
-
-function showAdminDash() {
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+function showAdminDash(){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById('adminView').classList.add('active');
-  document.getElementById('publicNav').style.display = 'none';
-  updateAdminCounters();
-  renderSectorChart(); renderDonut(); renderRecentTable();
+  document.getElementById('publicNav').style.display='none';
+  updateAdminCounters();renderSectorChart();renderDonut();renderRecentTable();
 }
-
-window.showAdminSub = function(id, navEl) {
-  document.querySelectorAll('.admin-sub-view').forEach(v => v.classList.remove('active'));
+window.showAdminSub=function(id,navEl){
+  document.querySelectorAll('.admin-sub-view').forEach(v=>v.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   if(navEl) navEl.classList.add('active');
-  if(id==='dashOverview')  { updateAdminCounters(); renderSectorChart(); renderDonut(); renderRecentTable(); }
-  if(id==='allComplaints') { currentFilter=''; renderTable(); }
-  if(id==='settingsView')  renderSettings();
+  if(id==='dashOverview'){updateAdminCounters();renderSectorChart();renderDonut();renderRecentTable();}
+  if(id==='allComplaints'){currentFilter='';renderTable();}
+  if(id==='settingsView') renderSettings();
+  if(id==='reportsView') renderReport();
+  if(id==='formBuilderView') renderFormBuilder();
 };
-
-window.filterAndShow = function(status) {
-  currentFilter = status;
-  window.showAdminSub('allComplaints', null);
-  document.getElementById('complaintsPageTitle').textContent = status || 'كل الشكاوى';
+window.filterAndShow=function(status){
+  currentFilter=status;
+  window.showAdminSub('allComplaints',null);
+  document.getElementById('complaintsPageTitle').textContent=status||'كل الشكاوى';
   renderTable();
 };
 
-// ═══ FORM ═══
-let selectedType = '', selectedPriority = '';
-
-window.selectType = function(t, btn) {
-  selectedType = t;
-  document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('selected'));
-  btn.classList.add('selected');
-  document.getElementById('fType').value = t;
+// ═══ FILE UPLOAD ═══
+window.handleFileSelect=function(input){
+  const file=input.files[0];
+  if(!file) return;
+  if(file.size>10*1024*1024){showToast('❌ الملف أكبر من 10MB','err');input.value='';return;}
+  selectedFile=file;
+  const icon = file.type.startsWith('image/')?'🖼️':file.type==='application/pdf'?'📄':file.type.startsWith('audio/')?'🎵':'📎';
+  document.getElementById('dropZonePreview').style.display='block';
+  document.getElementById('dropZonePreview').innerHTML=`<div class="file-preview-box"><span class="file-icon">${icon}</span><span class="file-name">${file.name}</span><button class="file-remove" onclick="removeFile()">✕ إزالة</button></div>`;
+  document.getElementById('dropZoneText').style.display='none';
+};
+window.removeFile=function(){
+  selectedFile=null;
+  document.getElementById('fAttachment').value='';
+  document.getElementById('dropZonePreview').style.display='none';
+  document.getElementById('dropZoneText').style.display='block';
+};
+window.handleAdminFile=function(input){
+  const file=input.files[0];
+  if(!file) return;
+  adminFile=file;
+  document.getElementById('adminFileName').textContent=file.name;
+  document.getElementById('adminFileName').style.color='var(--gold-light)';
 };
 
-window.selectPriority = function(p, btn) {
-  selectedPriority = p;
-  document.querySelectorAll('.priority-btn').forEach(b => b.classList.remove('selected'));
-  btn.classList.add('selected');
-  document.getElementById('fPriority').value = p;
-};
+// drag and drop
+document.addEventListener('DOMContentLoaded',()=>{
+  const dz=document.getElementById('dropZone');
+  if(dz){
+    dz.addEventListener('dragover',e=>{e.preventDefault();dz.style.borderColor='var(--gold)';dz.style.background='rgba(200,169,74,0.08)';});
+    dz.addEventListener('dragleave',()=>{dz.style.borderColor='rgba(200,169,74,0.3)';dz.style.background='rgba(255,255,255,0.03)';});
+    dz.addEventListener('drop',e=>{e.preventDefault();dz.style.borderColor='rgba(200,169,74,0.3)';dz.style.background='rgba(255,255,255,0.03)';
+      const file=e.dataTransfer.files[0];
+      if(file){const inp=document.getElementById('fAttachment');const dt=new DataTransfer();dt.items.add(file);inp.files=dt.files;handleFileSelect(inp);}
+    });
+  }
+});
 
-window.updateCharCount = function() {
-  document.getElementById('charCount').textContent = document.getElementById('fBody').value.length + ' / 2000';
-};
+// ═══ CUSTOM FIELDS IN FORM ═══
+function renderCustomFieldsInForm(){
+  const container=document.getElementById('customFieldsContainer');
+  if(!container||!CUSTOM_FIELDS.length){if(container)container.innerHTML='';return;}
+  container.innerHTML=CUSTOM_FIELDS.map(f=>{
+    let input='';
+    if(f.field_type==='text') input=`<input type="text" class="form-input" id="cf_${f.id}" placeholder="${f.field_label}">`;
+    else if(f.field_type==='textarea') input=`<textarea class="form-textarea" id="cf_${f.id}" placeholder="${f.field_label}" style="min-height:80px"></textarea>`;
+    else if(f.field_type==='select'){const opts=(f.field_options||[]).map(o=>`<option value="${o}">${o}</option>`).join('');input=`<select class="form-select" id="cf_${f.id}"><option value="">— اختر —</option>${opts}</select>`;}
+    else if(f.field_type==='radio'){input=(f.field_options||[]).map(o=>`<label style="display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:0.85rem;color:var(--gray);cursor:pointer"><input type="radio" name="cf_${f.id}" value="${o}" style="accent-color:var(--gold)"> ${o}</label>`).join('');}
+    else if(f.field_type==='checkbox'){input=(f.field_options||[]).map(o=>`<label style="display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:0.85rem;color:var(--gray);cursor:pointer"><input type="checkbox" class="cf_check_${f.id}" value="${o}" style="accent-color:var(--gold)"> ${o}</label>`).join('');}
+    return `<div class="custom-field-group"><label>${f.field_label} ${f.is_required?'<span class="req">*</span>':''}</label>${input}</div>`;
+  }).join('');
+}
 
-function resetForm() {
-  ['fName','fEmail','fPhone','fSubject','fBody'].forEach(id => {
-    const el = document.getElementById(id);
-    if(el) el.value = '';
+function getCustomAnswers(){
+  const answers={};
+  CUSTOM_FIELDS.forEach(f=>{
+    if(f.field_type==='radio'){const sel=document.querySelector(`input[name="cf_${f.id}"]:checked`);if(sel)answers[f.field_label]=sel.value;}
+    else if(f.field_type==='checkbox'){const checked=[...document.querySelectorAll(`.cf_check_${f.id}:checked`)].map(c=>c.value);if(checked.length)answers[f.field_label]=checked.join('، ');}
+    else{const el=document.getElementById(`cf_${f.id}`);if(el&&el.value)answers[f.field_label]=el.value;}
   });
-  ['fRole','fSector'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
-  document.getElementById('fType').value = '';
-  document.getElementById('fPriority').value = '';
-  document.querySelectorAll('.type-btn,.priority-btn').forEach(b => b.classList.remove('selected'));
-  document.getElementById('fAnon').checked = false;
-  selectedType=''; selectedPriority='';
+  return answers;
+}
+
+// ═══ FORM ═══
+let selectedType='',selectedPriority='';
+window.selectType=function(t,btn){selectedType=t;document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected');document.getElementById('fType').value=t;};
+window.selectPriority=function(p,btn){selectedPriority=p;document.querySelectorAll('.priority-btn').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected');document.getElementById('fPriority').value=p;};
+window.updateCharCount=function(){document.getElementById('charCount').textContent=document.getElementById('fBody').value.length+' / 2000';};
+
+function resetForm(){
+  ['fName','fEmail','fPhone','fSubject','fBody'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['fRole','fSector'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('fType').value='';document.getElementById('fPriority').value='';
+  document.querySelectorAll('.type-btn,.priority-btn').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('fAnon').checked=false;
+  selectedType='';selectedPriority='';
+  selectedFile=null;
+  document.getElementById('fAttachment').value='';
+  document.getElementById('dropZonePreview').style.display='none';
+  document.getElementById('dropZoneText').style.display='block';
   window.updateCharCount();
 }
 
-window.submitComplaint = async function() {
-  const name     = document.getElementById('fName').value.trim();
-  const email    = document.getElementById('fEmail').value.trim();
-  const role     = document.getElementById('fRole').value;
-  const type     = document.getElementById('fType').value;
-  const sector   = document.getElementById('fSector').value;
-  const priority = document.getElementById('fPriority').value;
-  const subject  = document.getElementById('fSubject').value.trim();
-  const body     = document.getElementById('fBody').value.trim();
-  const anon     = document.getElementById('fAnon').checked;
+window.submitComplaint=async function(){
+  const name=document.getElementById('fName').value.trim();
+  const email=document.getElementById('fEmail').value.trim();
+  const role=document.getElementById('fRole').value;
+  const type=document.getElementById('fType').value;
+  const sector=document.getElementById('fSector').value;
+  const priority=document.getElementById('fPriority').value;
+  const subject=document.getElementById('fSubject').value.trim();
+  const body=document.getElementById('fBody').value.trim();
+  const anon=document.getElementById('fAnon').checked;
 
-  if(email && !email.includes('@')){ showToast('⚠️ البريد الإلكتروني غير صحيح','err'); return; }
-  if(!role)    { showToast('⚠️ اختر صفة مقدم الشكوى','err'); return; }
-  if(!type)    { showToast('⚠️ اختر نوع التقديم','err'); return; }
-  if(!sector)  { showToast('⚠️ اختر القطاع المعني','err'); return; }
-  if(!priority){ showToast('⚠️ حدد الأولوية','err'); return; }
-  if(!subject) { showToast('⚠️ اكتب موضوع الشكوى','err'); return; }
-  if(body.length < 20){ showToast('⚠️ اكتب تفاصيل أكثر (20 حرف على الأقل)','err'); return; }
+  if(email&&!email.includes('@')){showToast('⚠️ البريد الإلكتروني غير صحيح','err');return;}
+  if(!role){showToast('⚠️ اختر صفة مقدم الشكوى','err');return;}
+  if(!type){showToast('⚠️ اختر نوع التقديم','err');return;}
+  if(!sector){showToast('⚠️ اختر القطاع المعني','err');return;}
+  if(!priority){showToast('⚠️ حدد الأولوية','err');return;}
+  if(!subject){showToast('⚠️ اكتب موضوع الشكوى','err');return;}
+  if(body.length<20){showToast('⚠️ اكتب تفاصيل أكثر (20 حرف على الأقل)','err');return;}
 
-  const btn = document.getElementById('submitBtn');
-  btn.disabled = true;
-  btn.innerHTML = '⏳ جارٍ الإرسال...';
+  // validate required custom fields
+  for(const f of CUSTOM_FIELDS){
+    if(f.is_required){
+      const val=getCustomAnswers()[f.field_label];
+      if(!val){showToast(`⚠️ الحقل "${f.field_label}" إلزامي`,'err');return;}
+    }
+  }
 
-  const ref = generateRef();
-  const payload = {
-    ref,
-    name:       (anon || !name) ? 'مجهول' : name,
-    real_name:  name || 'مجهول',
-    email:      email || '-',
-    phone:      document.getElementById('fPhone').value || '',
-    role, type, sector, priority, subject, body, anon,
-    status:     'جديدة',
-    notes:      '',
-    date:       new Date().toLocaleDateString('ar-EG'),
-    timestamp:  Date.now()
+  const btn=document.getElementById('submitBtn');
+  btn.disabled=true; btn.innerHTML='⏳ جارٍ الإرسال...';
+
+  const ref=generateRef();
+  let attachmentUrl=null,attachmentName=null,attachmentType=null;
+  if(selectedFile){
+    try{
+      btn.innerHTML='⏳ جارٍ رفع الملف...';
+      const res=await uploadFile(selectedFile);
+      attachmentUrl=res.url;attachmentName=res.name;attachmentType=res.type;
+    }catch(e){showToast('⚠️ تعذر رفع الملف، سيتم الإرسال بدونه','err');}
+  }
+
+  const payload={
+    ref,name:(anon||!name)?'مجهول':name,real_name:name||'مجهول',
+    email:email||'-',phone:document.getElementById('fPhone').value||'',
+    role,type,sector,priority,subject,body,anon,
+    status:'جديدة',notes:'',date:new Date().toLocaleDateString('ar-EG'),timestamp:Date.now(),
+    attachment_url:attachmentUrl,attachment_name:attachmentName,attachment_type:attachmentType,
+    custom_answers:getCustomAnswers()
   };
 
-  try {
-    await sbPost('complaints', payload);
-    document.getElementById('modalRef').innerHTML = `<small>الرقم المرجعي</small>${ref}`;
+  try{
+    await sbPost('complaints',payload);
+    document.getElementById('modalRef').innerHTML=`<small>الرقم المرجعي</small>${ref}`;
     document.getElementById('successModal').classList.add('show');
     resetForm();
     await loadComplaints();
-    showToast('✅ تم إرسال الشكوى بنجاح');
-  } catch(e) {
-    console.error('Submit error:', e);
-    showToast('❌ خطأ في الإرسال: ' + (e.message||'تحقق من الاتصال'), 'err');
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '✉️ إرسال الشكوى / المقترح';
+  }catch(e){
+    console.error(e);showToast('❌ خطأ في الإرسال: '+(e.message||'تحقق من الاتصال'),'err');
+  }finally{
+    btn.disabled=false;btn.innerHTML='✉️ إرسال الشكوى / المقترح';
   }
 };
 
-window.closeModal = function() { document.getElementById('successModal').classList.remove('show'); };
-
-window.goTrack = function() {
+window.closeModal=function(){document.getElementById('successModal').classList.remove('show');};
+window.goTrack=function(){
   window.closeModal();
-  const ref = document.getElementById('modalRef').textContent.replace('الرقم المرجعي','').trim();
-  window.showPublicView('trackView', document.querySelectorAll('.pnav-item')[1]);
-  document.getElementById('trackRef').value = ref;
-  window.trackComplaint();
+  const ref=document.getElementById('modalRef').textContent.replace('الرقم المرجعي','').trim();
+  window.showPublicView('trackView',document.querySelectorAll('.pnav-item')[1]);
+  document.getElementById('trackRef').value=ref;window.trackComplaint();
 };
 
 // ═══ TRACK ═══
-window.trackComplaint = function() {
-  const ref = document.getElementById('trackRef').value.trim().toUpperCase();
-  const c   = ALL_COMPLAINTS.find(x => x.ref === ref);
-  const box = document.getElementById('trackResult');
-  if(!c) {
-    box.innerHTML = `<div style="text-align:center;color:#e74c3c;padding:1rem">❌ لم يتم العثور على شكوى بهذا الرقم.<br><small style="color:var(--gray)">تأكد من الرقم وحاول مرة أخرى</small></div>`;
-    box.classList.add('show'); return;
-  }
-  box.innerHTML = `
+window.trackComplaint=function(){
+  const ref=document.getElementById('trackRef').value.trim().toUpperCase();
+  const c=ALL_COMPLAINTS.find(x=>x.ref===ref);
+  const box=document.getElementById('trackResult');
+  if(!c){box.innerHTML=`<div style="text-align:center;color:#e74c3c;padding:1rem">❌ لم يتم العثور على شكوى بهذا الرقم.<br><small style="color:var(--gray)">تأكد من الرقم وحاول مرة أخرى</small></div>`;box.classList.add('show');return;}
+  const attachHtml=c.attachmentUrl?`<div class="track-detail-row"><span class="lbl">📎 المرفق</span><span class="val"><a href="${c.attachmentUrl}" target="_blank" style="color:var(--gold-light);text-decoration:underline">📥 ${c.attachmentName||'عرض المرفق'}</a></span></div>`:'';
+  const adminAttachHtml=c.adminAttachmentUrl?`<div class="track-detail-row"><span class="lbl">📎 مرفق الإدارة</span><span class="val"><a href="${c.adminAttachmentUrl}" target="_blank" style="color:#52be80;text-decoration:underline">📥 ${c.adminAttachmentName||'عرض ملف الإدارة'}</a></span></div>`:'';
+  const customHtml=Object.entries(c.customAnswers||{}).map(([k,v])=>`<div class="track-detail-row"><span class="lbl">${k}</span><span class="val">${v}</span></div>`).join('');
+  box.innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem">
       <div class="ref-code">${c.ref}</div>${getStatusBadge(c.status)}
     </div>
@@ -1170,58 +1315,52 @@ window.trackComplaint = function() {
       <div class="track-detail-row"><span class="lbl">🏛️ القطاع</span><span class="val">${c.sector}</span></div>
       <div class="track-detail-row"><span class="lbl">🚦 الأولوية</span><span class="val">${getPriorityBadge(c.priority)}</span></div>
       <div class="track-detail-row"><span class="lbl">📅 تاريخ التقديم</span><span class="val">${c.date}</span></div>
-      ${c.notes ? `<div class="track-detail-row"><span class="lbl">📝 رد الإدارة</span><span class="val" style="color:var(--gold-light)">${c.notes}</span></div>` : ''}
+      ${attachHtml}${customHtml}
+      ${c.notes?`<div class="track-detail-row"><span class="lbl">📝 رد الإدارة</span><span class="val" style="color:var(--gold-light)">${c.notes}</span></div>`:''}
+      ${adminAttachHtml}
     </div>`;
   box.classList.add('show');
 };
 
 // ═══ ADMIN AUTH ═══
-window.adminLogin = function() {
-  const pass = document.getElementById('adminPass').value;
-  if(pass === SETTINGS.password) {
-    adminLoggedIn = true;
-    document.getElementById('loginErr').classList.remove('show');
-    document.getElementById('adminPass').value = '';
-    showAdminDash();
-  } else {
-    document.getElementById('loginErr').classList.add('show');
-    document.getElementById('adminPass').value = '';
-  }
+window.adminLogin=function(){
+  const pass=document.getElementById('adminPass').value;
+  if(pass===SETTINGS.password){adminLoggedIn=true;document.getElementById('loginErr').classList.remove('show');document.getElementById('adminPass').value='';showAdminDash();}
+  else{document.getElementById('loginErr').classList.add('show');document.getElementById('adminPass').value='';}
 };
-
-window.adminLogout = function() {
-  adminLoggedIn = false;
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+window.adminLogout=function(){
+  adminLoggedIn=false;
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById('formView').classList.add('active');
-  document.getElementById('publicNav').style.display = '';
+  document.getElementById('publicNav').style.display='';
   document.querySelectorAll('.pnav-item')[0].classList.add('active');
 };
 
 // ═══ DASHBOARD ═══
-function updateAdminCounters() {
-  const c = ALL_COMPLAINTS;
-  const newOnes = c.filter(x=>x.status==='جديدة').length;
-  document.getElementById('kpi1').textContent = c.length;
-  document.getElementById('kpi2').textContent = c.filter(x=>x.status==='قيد المراجعة').length;
-  document.getElementById('kpi3').textContent = c.filter(x=>x.status==='تمت المعالجة').length;
-  document.getElementById('kpi4').textContent = c.filter(x=>x.priority==='عالية').length;
-  document.getElementById('kpiTrend1').textContent = newOnes + ' جديدة';
-  document.getElementById('newBadge').textContent  = newOnes;
-  document.getElementById('lastUpdate').textContent = '🔄 ' + new Date().toLocaleTimeString('ar-EG');
+function updateAdminCounters(){
+  const c=ALL_COMPLAINTS;
+  const newOnes=c.filter(x=>x.status==='جديدة').length;
+  document.getElementById('kpi1').textContent=c.length;
+  document.getElementById('kpi2').textContent=c.filter(x=>x.status==='قيد المراجعة').length;
+  document.getElementById('kpi3').textContent=c.filter(x=>x.status==='تمت المعالجة').length;
+  document.getElementById('kpi4').textContent=c.filter(x=>x.priority==='عالية').length;
+  document.getElementById('kpiTrend1').textContent=newOnes+' جديدة';
+  document.getElementById('newBadge').textContent=newOnes;
+  document.getElementById('lastUpdate').textContent='🔄 '+new Date().toLocaleTimeString('ar-EG');
 }
 
-function renderSectorChart() {
-  const sectors = ["قطاع عميد الكلية","قطاع شئون التعليم والطلاب","قطاع شئون الدراسات العليا والبحوث","قطاع شئون تنمية البيئة وخدمة المجتمع"];
-  const max = Math.max(1,...sectors.map(s=>ALL_COMPLAINTS.filter(c=>c.sector===s).length));
-  document.getElementById('sectorChart').innerHTML = sectors.map(s=>{
+function renderSectorChart(){
+  const sectors=["قطاع عميد الكلية","قطاع شئون التعليم والطلاب","قطاع شئون الدراسات العليا والبحوث","قطاع شئون تنمية البيئة وخدمة المجتمع","العيادة الطبية"];
+  const max=Math.max(1,...sectors.map(s=>ALL_COMPLAINTS.filter(c=>c.sector===s).length));
+  document.getElementById('sectorChart').innerHTML=sectors.map(s=>{
     const count=ALL_COMPLAINTS.filter(c=>c.sector===s).length;
     const pct=Math.round((count/max)*100);
     return `<div class="bar-row"><div class="bar-lbl">${s.replace('قطاع شئون ','').replace('قطاع ','')}</div>
       <div class="bar-track"><div class="bar-fill" style="width:${pct}%" data-val="${count}"></div></div></div>`;
-  }).join('') || '<div style="color:var(--gray);text-align:center;padding:2rem">لا توجد بيانات</div>';
+  }).join('')||'<div style="color:var(--gray);text-align:center;padding:2rem">لا توجد بيانات</div>';
 }
 
-function renderDonut() {
+function renderDonut(){
   const types=['شكوى','مقترح','استفسار','طلب'];
   const colors=['#c8a94a','#3498db','#27ae60','#9b59b6'];
   const total=ALL_COMPLAINTS.length||1;
@@ -1235,23 +1374,19 @@ function renderDonut() {
     const x2=50+35*Math.cos(offset-Math.PI/2),y2=50+35*Math.sin(offset-Math.PI/2);
     paths+=`<path d="M50,50 L${x1},${y1} A35,35 0 ${pct>0.5?1:0},1 ${x2},${y2} Z" fill="${colors[i]}" opacity="0.85"/>`;
   });
-  document.getElementById('donutSvg').innerHTML=paths+
-    `<circle cx="50" cy="50" r="20" fill="#0a1628"/><text x="50" y="55" text-anchor="middle" font-size="8" fill="white" font-family="Cairo">${ALL_COMPLAINTS.length}</text>`;
-  document.getElementById('donutLegend').innerHTML=types.map((t,i)=>
-    `<div class="legend-item"><div class="legend-dot" style="background:${colors[i]}"></div>${t} (${counts[i]})</div>`).join('');
+  document.getElementById('donutSvg').innerHTML=paths+`<circle cx="50" cy="50" r="20" fill="#0a1628"/><text x="50" y="55" text-anchor="middle" font-size="8" fill="white" font-family="Cairo">${ALL_COMPLAINTS.length}</text>`;
+  document.getElementById('donutLegend').innerHTML=types.map((t,i)=>`<div class="legend-item"><div class="legend-dot" style="background:${colors[i]}"></div>${t} (${counts[i]})</div>`).join('');
 }
 
-function renderRecentTable() {
+function renderRecentTable(){
   const rows=ALL_COMPLAINTS.slice(0,10);
-  document.getElementById('recentTableBody').innerHTML = !rows.length
-    ? '<tr><td colspan="8" class="empty-state"><div class="empty-icon">📭</div>لا توجد شكاوى بعد</td></tr>'
-    : rows.map(c=>`<tr>
+  document.getElementById('recentTableBody').innerHTML=!rows.length
+    ?'<tr><td colspan="8" class="empty-state"><div class="empty-icon">📭</div>لا توجد شكاوى بعد</td></tr>'
+    :rows.map(c=>`<tr>
         <td><span class="ref-code">${c.ref}</span></td>
-        <td>${c.anon?'🕵️ مجهول':c.name}</td>
-        <td>${c.type}</td>
+        <td>${c.anon?'🕵️ مجهول':c.name}</td><td>${c.type}</td>
         <td style="font-size:0.77rem">${c.sector.replace('قطاع شئون ','').replace('قطاع ','')}</td>
-        <td>${getPriorityBadge(c.priority)}</td>
-        <td>${getStatusBadge(c.status)}</td>
+        <td>${getPriorityBadge(c.priority)}</td><td>${getStatusBadge(c.status)}</td>
         <td style="font-size:0.78rem;color:var(--gray)">${c.date}</td>
         <td><div class="action-btns">
           <button class="act-btn act-view" onclick="openDetail('${c.id}')" title="عرض">👁️</button>
@@ -1260,34 +1395,23 @@ function renderRecentTable() {
 }
 
 // ═══ TABLE ═══
-window.setFilter = function(f,btn) {
-  currentFilter=f;
-  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
-  if(btn) btn.classList.add('active');
-  renderTable();
+window.setFilter=function(f,btn){
+  currentFilter=f;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');renderTable();
 };
-
-function renderTable() {
+function renderTable(){
   const search=(document.getElementById('searchInput')?.value||'').toLowerCase();
   let data=ALL_COMPLAINTS;
   if(currentFilter) data=data.filter(c=>c.status===currentFilter);
-  if(search) data=data.filter(c=>
-    (c.name||'').toLowerCase().includes(search)||
-    (c.ref||'').toLowerCase().includes(search)||
-    (c.subject||'').toLowerCase().includes(search)||
-    (c.sector||'').includes(search)||
-    (c.type||'').includes(search));
+  if(search) data=data.filter(c=>(c.name||'').toLowerCase().includes(search)||(c.ref||'').toLowerCase().includes(search)||(c.subject||'').toLowerCase().includes(search)||(c.sector||'').includes(search)||(c.type||'').includes(search));
   const tbody=document.getElementById('mainTableBody');
-  tbody.innerHTML = !data.length
-    ? '<tr><td colspan="9" class="empty-state"><div class="empty-icon">📭</div>لا توجد شكاوى مطابقة</td></tr>'
-    : data.map(c=>`<tr>
+  tbody.innerHTML=!data.length
+    ?'<tr><td colspan="9" class="empty-state"><div class="empty-icon">📭</div>لا توجد شكاوى مطابقة</td></tr>'
+    :data.map(c=>`<tr>
         <td><span class="ref-code">${c.ref}</span></td>
-        <td>${c.anon?'🕵️ مجهول':c.name}</td>
-        <td>${c.type}</td>
+        <td>${c.anon?'🕵️ مجهول':c.name}</td><td>${c.type}</td>
         <td style="font-size:0.77rem">${c.sector.replace('قطاع شئون ','').replace('قطاع ','')}</td>
         <td style="font-size:0.82rem;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${c.subject}">${c.subject}</td>
-        <td>${getPriorityBadge(c.priority)}</td>
-        <td>${getStatusBadge(c.status)}</td>
+        <td>${getPriorityBadge(c.priority)}</td><td>${getStatusBadge(c.status)}</td>
         <td style="font-size:0.78rem;color:var(--gray)">${c.date}</td>
         <td><div class="action-btns">
           <button class="act-btn act-view" onclick="openDetail('${c.id}')" title="عرض">👁️</button>
@@ -1296,8 +1420,8 @@ function renderTable() {
         </div></td></tr>`).join('');
 }
 
-// ═══ DETAIL MODAL ═══
-window.openDetail = function(id) {
+// ═══ DETAIL ═══
+window.openDetail=function(id){
   const c=ALL_COMPLAINTS.find(x=>x.id===id);
   if(!c) return;
   currentDetailId=id;
@@ -1305,6 +1429,12 @@ window.openDetail = function(id) {
   document.getElementById('detailRef').textContent=c.ref;
   document.getElementById('detailStatusSelect').value=c.status;
   document.getElementById('detailNotes').value=c.notes||'';
+  document.getElementById('adminFileName').textContent='لم يتم اختيار ملف';
+  document.getElementById('adminFileName').style.color='var(--gray)';
+  adminFile=null;
+  const attachHtml=c.attachmentUrl?`<div class="detail-field"><label>📎 مرفق مقدم الشكوى</label><p><a href="${c.attachmentUrl}" target="_blank" style="color:var(--gold-light);text-decoration:underline">📥 ${c.attachmentName||'عرض المرفق'}</a></p></div>`:'';
+  const customHtml=Object.entries(c.customAnswers||{}).map(([k,v])=>`<div class="detail-field"><label>${k}</label><p>${v}</p></div>`).join('');
+  const adminAttachHtml=c.adminAttachmentUrl?`<div class="admin-attach-preview"><span>📎</span><a href="${c.adminAttachmentUrl}" target="_blank" style="color:#52be80;font-size:0.82rem">${c.adminAttachmentName||'ملف الإدارة'}</a></div>`:'';
   document.getElementById('detailContent').innerHTML=`
     <div class="detail-field"><label>👤 مقدم الشكوى</label><p>${c.anon?'🕵️ مجهول الهوية':c.realName}</p></div>
     ${!c.anon&&c.email!=='-'?`<div class="detail-field"><label>📧 البريد</label><p style="direction:ltr">${c.email}</p></div>`:''}
@@ -1316,149 +1446,266 @@ window.openDetail = function(id) {
       <div class="detail-field"><label>🚦 الأولوية</label><p>${getPriorityBadge(c.priority)}</p></div>
     </div>
     <div class="detail-field"><label>📝 التفاصيل</label><p>${c.body}</p></div>
+    ${customHtml}${attachHtml}${adminAttachHtml}
     <div class="detail-field"><label>📅 تاريخ التقديم</label><p>${c.date}</p></div>`;
   document.getElementById('detailModal').classList.add('show');
 };
+window.closeDetail=function(){document.getElementById('detailModal').classList.remove('show');currentDetailId=null;};
 
-window.closeDetail = function() {
-  document.getElementById('detailModal').classList.remove('show');
-  currentDetailId=null;
-};
-
-window.saveDetailStatus = async function() {
+window.saveDetailStatus=async function(){
   if(!currentDetailId) return;
-  try {
-    await sbPatch('complaints', currentDetailId, {
-      status: document.getElementById('detailStatusSelect').value,
-      notes:  document.getElementById('detailNotes').value
-    });
-    await loadComplaints();
-    window.closeDetail();
-    showToast('✅ تم حفظ التغييرات بنجاح');
-  } catch(e) { showToast('❌ خطأ في الحفظ: '+e.message,'err'); }
+  let adminAttachmentUrl=null,adminAttachmentName=null;
+  if(adminFile){
+    try{const res=await uploadFile(adminFile);adminAttachmentUrl=res.url;adminAttachmentName=res.name;}
+    catch(e){showToast('⚠️ تعذر رفع ملف الإدارة','err');}
+  }
+  try{
+    const updateData={status:document.getElementById('detailStatusSelect').value,notes:document.getElementById('detailNotes').value};
+    if(adminAttachmentUrl){updateData.admin_attachment_url=adminAttachmentUrl;updateData.admin_attachment_name=adminAttachmentName;}
+    await sbPatch('complaints',currentDetailId,updateData);
+    await loadComplaints();window.closeDetail();showToast('✅ تم حفظ التغييرات بنجاح');
+  }catch(e){showToast('❌ خطأ في الحفظ: '+e.message,'err');}
 };
 
-window.delComplaint = async function(id) {
+window.delComplaint=async function(id){
   if(!confirm('هل أنت متأكد من حذف هذه الشكوى؟')) return;
-  try {
-    await sbDelete('complaints', id);
-    await loadComplaints();
-    showToast('🗑️ تم حذف الشكوى');
-  } catch(e) { showToast('❌ خطأ في الحذف','err'); }
+  try{await sbDelete('complaints',id);await loadComplaints();showToast('🗑️ تم حذف الشكوى');}
+  catch(e){showToast('❌ خطأ في الحذف','err');}
 };
+
+// ═══ DOWNLOAD COMPLAINT ═══
+window.downloadComplaintPDF=function(){
+  const c=ALL_COMPLAINTS.find(x=>x.id===currentDetailId);
+  if(!c) return;
+  const customRows=Object.entries(c.customAnswers||{}).map(([k,v])=>`<tr><td style="font-weight:700;color:#c8a94a;padding:6px 12px;border-bottom:1px solid #eee">${k}</td><td style="padding:6px 12px;border-bottom:1px solid #eee">${v}</td></tr>`).join('');
+  const html=`<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8">
+    <style>body{font-family:Arial,sans-serif;color:#0a1628;direction:rtl;padding:40px;max-width:700px;margin:0 auto}
+    h1{background:linear-gradient(135deg,#0a1628,#1e4d99);color:white;padding:20px;border-radius:10px;font-size:22px;margin-bottom:5px}
+    .subtitle{color:#8a9ab5;font-size:13px;margin-bottom:20px}.ref{background:#f5e9c0;border:2px solid #c8a94a;border-radius:8px;padding:10px 20px;font-size:20px;font-weight:700;color:#0a1628;display:inline-block;margin-bottom:20px;letter-spacing:3px}
+    table{width:100%;border-collapse:collapse;margin-bottom:15px}td{padding:8px 12px;border-bottom:1px solid #eee;font-size:14px}
+    tr:nth-child(even){background:#f9f9f9}.label{font-weight:700;color:#1e4d99;min-width:140px}
+    .status{display:inline-block;padding:4px 14px;border-radius:15px;font-size:13px;font-weight:700}
+    .body-box{background:#f9f9f9;border:1px solid #ddd;border-radius:8px;padding:15px;font-size:14px;line-height:1.8;margin:10px 0}
+    .footer{text-align:center;margin-top:30px;padding-top:15px;border-top:2px solid #c8a94a;font-size:11px;color:#8a9ab5}
+    @media print{body{padding:20px}}</style>
+    </head><body>
+    <h1>📋 نظام الشكاوى والمقترحات — كلية الهندسة</h1>
+    <div class="subtitle">جامعة المنصورة | برعاية أ.د. شريف مسعد البدوي</div>
+    <div class="ref">🔢 ${c.ref}</div>
+    <table><tr><td class="label">👤 مقدم الشكوى</td><td>${c.anon?'مجهول الهوية':c.realName}</td></tr>
+    ${!c.anon&&c.email!=='-'?`<tr><td class="label">📧 البريد</td><td style="direction:ltr">${c.email}</td></tr>`:''}
+    ${c.phone?`<tr><td class="label">📱 الهاتف</td><td style="direction:ltr">${c.phone}</td></tr>`:''}
+    <tr><td class="label">🎭 الصفة</td><td>${c.role}</td></tr>
+    <tr><td class="label">📂 النوع</td><td>${c.type}</td></tr>
+    <tr><td class="label">🏛️ القطاع</td><td>${c.sector}</td></tr>
+    <tr><td class="label">🚦 الأولوية</td><td>${c.priority}</td></tr>
+    <tr><td class="label">📌 الموضوع</td><td><strong>${c.subject}</strong></td></tr>
+    <tr><td class="label">📅 التاريخ</td><td>${c.date}</td></tr>
+    <tr><td class="label">🔄 الحالة</td><td>${c.status}</td></tr>
+    ${customRows}</table>
+    <strong>📝 التفاصيل:</strong><div class="body-box">${c.body}</div>
+    ${c.notes?`<strong>💬 رد الإدارة:</strong><div class="body-box" style="border-color:#c8a94a">${c.notes}</div>`:''}
+    ${c.attachmentUrl?`<p>📎 مرفق: <a href="${c.attachmentUrl}">${c.attachmentName||'عرض المرفق'}</a></p>`:''}
+    <div class="footer">تم إنشاء هذا المستند تلقائياً من نظام الشكاوى الرقمي — كلية الهندسة جامعة المنصورة — ${new Date().toLocaleDateString('ar-EG')}</div>
+    </body></html>`;
+  const w=window.open('','_blank');
+  w.document.write(html);w.document.close();
+  setTimeout(()=>{w.print();},800);
+};
+
+// ═══ REPORTS ═══
+window.setReportPeriod=function(p,btn){
+  reportPeriod=p;document.querySelectorAll('.report-period-btn').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');renderReport();
+};
+
+function getFilteredByPeriod(){
+  const now=Date.now();
+  const ms={week:7*24*60*60*1000,month:30*24*60*60*1000,all:Infinity};
+  const cutoff=now-(ms[reportPeriod]||Infinity);
+  return ALL_COMPLAINTS.filter(c=>c.timestamp>=cutoff||reportPeriod==='all');
+}
+
+function renderReport(){
+  const data=getFilteredByPeriod();
+  const label={'week':'الأسبوع الماضي','month':'الشهر الماضي','all':'جميع الفترات'}[reportPeriod]||'';
+  const sectors=["قطاع عميد الكلية","قطاع شئون التعليم والطلاب","قطاع شئون الدراسات العليا والبحوث","قطاع شئون تنمية البيئة وخدمة المجتمع","العيادة الطبية"];
+  const sectorRows=sectors.map(s=>{const n=data.filter(c=>c.sector===s).length;return n>0?`<div class="report-stat-row"><span class="rlbl">${s.replace('قطاع شئون ','').replace('قطاع ','')}</span><span class="rval">${n}</span></div>`:''}).join('');
+  const typeRows=['شكوى','مقترح','استفسار','طلب'].map(t=>{const n=data.filter(c=>c.type===t).length;return `<div class="report-stat-row"><span class="rlbl">${t}</span><span class="rval">${n}</span></div>`;}).join('');
+  const prioRows=['عالية','متوسطة','منخفضة'].map(p=>{const icon={'عالية':'🔴','متوسطة':'🟡','منخفضة':'🟢'}[p];const n=data.filter(c=>c.priority===p).length;return `<div class="report-stat-row"><span class="rlbl">${icon} ${p}</span><span class="rval">${n}</span></div>`;}).join('');
+  const statusRows=['جديدة','قيد المراجعة','تمت المعالجة','مغلقة'].map(s=>{const n=data.filter(c=>c.status===s).length;return `<div class="report-stat-row"><span class="rlbl">${s}</span><span class="rval">${n}</span></div>`;}).join('');
+
+  document.getElementById('reportContent').innerHTML=`
+    <div style="background:rgba(200,169,74,0.08);border:1px solid rgba(200,169,74,0.2);border-radius:12px;padding:1rem 1.5rem;margin-bottom:1.2rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+      <div style="font-size:1.8rem">📊</div>
+      <div><div style="font-size:1.1rem;font-weight:800;color:var(--white)">تقرير ${label}</div>
+      <div style="font-size:0.82rem;color:var(--gray)">إجمالي ${data.length} شكوى/مقترح — ${new Date().toLocaleDateString('ar-EG')}</div></div>
+      <div style="margin-right:auto;display:flex;gap:1rem;flex-wrap:wrap">
+        <div style="text-align:center"><div style="font-size:1.6rem;font-weight:900;color:var(--gold)">${data.filter(x=>x.status==='جديدة').length}</div><div style="font-size:0.75rem;color:var(--gray)">جديدة</div></div>
+        <div style="text-align:center"><div style="font-size:1.6rem;font-weight:900;color:#f39c12">${data.filter(x=>x.status==='قيد المراجعة').length}</div><div style="font-size:0.75rem;color:var(--gray)">مراجعة</div></div>
+        <div style="text-align:center"><div style="font-size:1.6rem;font-weight:900;color:#27ae60">${data.filter(x=>x.status==='تمت المعالجة').length}</div><div style="font-size:0.75rem;color:var(--gray)">منجزة</div></div>
+        <div style="text-align:center"><div style="font-size:1.6rem;font-weight:900;color:#e74c3c">${data.filter(x=>x.priority==='عالية').length}</div><div style="font-size:0.75rem;color:var(--gray)">عاجلة</div></div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+      <div class="report-card"><h3>🏛️ توزيع القطاعات</h3>${sectorRows||'<div style="color:var(--gray);font-size:0.85rem">لا توجد بيانات</div>'}</div>
+      <div class="report-card"><h3>📂 توزيع الأنواع</h3>${typeRows}</div>
+      <div class="report-card"><h3>🚦 توزيع الأولويات</h3>${prioRows}</div>
+      <div class="report-card"><h3>🔄 توزيع الحالات</h3>${statusRows}</div>
+    </div>
+    <div class="report-card">
+      <h3>📋 قائمة الشكاوى في هذه الفترة</h3>
+      <div style="overflow-x:auto">
+        <table class="complaints-table"><thead><tr><th>الرقم المرجعي</th><th>النوع</th><th>القطاع</th><th>الأولوية</th><th>الحالة</th><th>التاريخ</th></tr></thead>
+        <tbody>${data.slice(0,50).map(c=>`<tr><td><span class="ref-code">${c.ref}</span></td><td>${c.type}</td><td style="font-size:0.77rem">${c.sector.replace('قطاع شئون ','').replace('قطاع ','')}</td><td>${getPriorityBadge(c.priority)}</td><td>${getStatusBadge(c.status)}</td><td style="font-size:0.78rem;color:var(--gray)">${c.date}</td></tr>`).join('')||'<tr><td colspan="6" class="empty-state">لا توجد بيانات</td></tr>'}
+        </tbody></table>
+      </div>
+    </div>`;
+}
+
+window.exportReportCSV=function(){
+  const data=getFilteredByPeriod();
+  const headers=['الرقم المرجعي','الاسم','الصفة','النوع','القطاع','الموضوع','الأولوية','الحالة','التاريخ'];
+  const rows=data.map(c=>[c.ref,c.anon?'مجهول':c.name,c.role,c.type,c.sector,c.subject,c.priority,c.status,c.date]);
+  const csv='\uFEFF'+headers.join(',')+('\n')+rows.map(r=>r.map(v=>`"${v||''}"`) .join(',')).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download=`report_${reportPeriod}_${Date.now()}.csv`;a.click();
+};
+
+// ═══ FORM BUILDER ═══
+window.toggleOptionsRow=function(){
+  const t=document.getElementById('newFieldType').value;
+  document.getElementById('optionsRow').style.display=['select','radio','checkbox'].includes(t)?'flex':'none';
+};
+
+window.addCustomField=async function(){
+  const label=document.getElementById('newFieldLabel').value.trim();
+  const type=document.getElementById('newFieldType').value;
+  const optStr=document.getElementById('newFieldOptions').value.trim();
+  const required=document.getElementById('newFieldRequired').checked;
+  if(!label){showToast('⚠️ اكتب نص السؤال','err');return;}
+  const options=optStr?optStr.split(',').map(s=>s.trim()).filter(Boolean):[];
+  try{
+    await sbPost('custom_fields',{field_label:label,field_type:type,field_options:options,is_required:required,is_active:true,sort_order:CUSTOM_FIELDS.length});
+    await loadCustomFields();renderFormBuilder();renderCustomFieldsInForm();
+    document.getElementById('newFieldLabel').value='';document.getElementById('newFieldOptions').value='';document.getElementById('newFieldRequired').checked=false;
+    showToast('✅ تم إضافة السؤال بنجاح');
+  }catch(e){showToast('❌ خطأ: '+e.message,'err');}
+};
+
+window.deleteCustomField=async function(id){
+  if(!confirm('حذف هذا الحقل؟')) return;
+  try{await sbDelete('custom_fields',id);await loadCustomFields();renderFormBuilder();renderCustomFieldsInForm();showToast('🗑️ تم حذف الحقل');}
+  catch(e){showToast('❌ خطأ','err');}
+};
+
+window.toggleCustomField=async function(id,active){
+  try{await sbPatch('custom_fields',id,{is_active:!active});await loadCustomFields();renderFormBuilder();renderCustomFieldsInForm();}
+  catch(e){showToast('❌ خطأ','err');}
+};
+
+function renderFormBuilder(){
+  const el=document.getElementById('customFieldsList');
+  if(!el) return;
+  const typeLabel={text:'نص قصير',textarea:'نص طويل',select:'قائمة',radio:'اختيار واحد',checkbox:'متعدد'};
+  el.innerHTML=!CUSTOM_FIELDS.length
+    ?'<div style="color:var(--gray);text-align:center;padding:2rem;font-size:0.85rem">لا توجد أسئلة مضافة بعد</div>'
+    :CUSTOM_FIELDS.map(f=>`
+      <div class="field-builder-row">
+        <div>
+          <div class="fb-label">${f.field_label} ${f.is_required?'<span style="color:#e74c3c">*</span>':''}</div>
+          <div class="fb-type">${typeLabel[f.field_type]||f.field_type}${f.field_options&&f.field_options.length?' — '+f.field_options.join('، '):''}</div>
+        </div>
+        <button class="fb-toggle" onclick="toggleCustomField('${f.id}',${f.is_active})">${f.is_active?'🟢 مفعّل':'🔴 موقف'}</button>
+        <button class="fb-del" onclick="deleteCustomField('${f.id}')">🗑️</button>
+      </div>`).join('');
+}
 
 // ═══ SETTINGS ═══
-function renderSettings() {
-  document.getElementById('settCollegeName').value  = SETTINGS.college_name||'';
-  document.getElementById('settDeanName').value     = SETTINGS.dean_name||'';
-  document.getElementById('settEmailGeneral').value = SETTINGS.email_general||'';
-  const sectors=["قطاع عميد الكلية","قطاع شئون التعليم والطلاب","قطاع شئون الدراسات العليا والبحوث","قطاع شئون تنمية البيئة وخدمة المجتمع"];
+function renderSettings(){
+  document.getElementById('settCollegeName').value=SETTINGS.college_name||'';
+  document.getElementById('settDeanName').value=SETTINGS.dean_name||'';
+  document.getElementById('settEmailGeneral').value=SETTINGS.email_general||'';
+  const sectors=["قطاع عميد الكلية","قطاع شئون التعليم والطلاب","قطاع شئون الدراسات العليا والبحوث","قطاع شئون تنمية البيئة وخدمة المجتمع","العيادة الطبية"];
   document.getElementById('sectorEmailsList').innerHTML=sectors.map(s=>{
     const key='se_'+btoa(encodeURIComponent(s)).replace(/[^a-zA-Z0-9]/g,'').substring(0,20);
     const val=(SETTINGS.sector_emails||{})[s]||'';
-    return `<div class="email-sector-row">
-      <div class="email-sector-name">📧 ${s.replace('قطاع شئون ','').replace('قطاع ','')}</div>
-      <input type="email" class="email-sector-input" id="${key}" value="${val}" placeholder="email@mans.edu.eg" data-sector="${s}">
-    </div>`;
+    return `<div class="email-sector-row"><div class="email-sector-name">📧 ${s.replace('قطاع شئون ','').replace('قطاع ','')}</div>
+      <input type="email" class="email-sector-input" id="${key}" value="${val}" placeholder="email@mans.edu.eg" data-sector="${s}"></div>`;
   }).join('');
   const c=ALL_COMPLAINTS;
   document.getElementById('systemStats').innerHTML=[
-    ['إجمالي الشكاوى',c.length],
-    ['شكاوى جديدة',c.filter(x=>x.status==='جديدة').length],
+    ['إجمالي الشكاوى',c.length],['شكاوى جديدة',c.filter(x=>x.status==='جديدة').length],
     ['قيد المراجعة',c.filter(x=>x.status==='قيد المراجعة').length],
     ['تمت المعالجة',c.filter(x=>x.status==='تمت المعالجة').length],
     ['شكاوى مجهولة',c.filter(x=>x.anon).length],
   ].map(([l,v])=>`<div style="display:flex;justify-content:space-between;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.05)"><span>${l}</span><strong style="color:var(--gold-light)">${v}</strong></div>`).join('');
 }
 
-window.saveSettings = async function() {
-  SETTINGS.college_name  = document.getElementById('settCollegeName').value;
-  SETTINGS.dean_name     = document.getElementById('settDeanName').value;
-  SETTINGS.email_general = document.getElementById('settEmailGeneral').value;
-  try {
-    await sbPatchText('settings','id=eq.main',{
-      college_name:  SETTINGS.college_name,
-      dean_name:     SETTINGS.dean_name,
-      email_general: SETTINGS.email_general
-    });
-    showToast('✅ تم حفظ الإعدادات');
-  } catch(e) { showToast('❌ خطأ: '+e.message,'err'); }
+window.saveSettings=async function(){
+  SETTINGS.college_name=document.getElementById('settCollegeName').value;
+  SETTINGS.dean_name=document.getElementById('settDeanName').value;
+  SETTINGS.email_general=document.getElementById('settEmailGeneral').value;
+  try{await sbPatchText('settings','id=eq.main',{college_name:SETTINGS.college_name,dean_name:SETTINGS.dean_name,email_general:SETTINGS.email_general});showToast('✅ تم حفظ الإعدادات');}
+  catch(e){showToast('❌ خطأ: '+e.message,'err');}
 };
 
-window.saveSectorEmails = async function() {
+window.saveSectorEmails=async function(){
   const inputs=document.querySelectorAll('.email-sector-input');
-  const emails={};
-  inputs.forEach(el=>{ if(el.dataset.sector) emails[el.dataset.sector]=el.value.trim(); });
+  const emails={};inputs.forEach(el=>{if(el.dataset.sector)emails[el.dataset.sector]=el.value.trim();});
   SETTINGS.sector_emails=emails;
-  try {
-    await sbPatchText('settings','id=eq.main',{sector_emails: emails});
-    showToast('✅ تم حفظ إيميلات القطاعات');
-  } catch(e) { showToast('❌ خطأ: '+e.message,'err'); }
+  try{await sbPatchText('settings','id=eq.main',{sector_emails:emails});showToast('✅ تم حفظ إيميلات القطاعات');}
+  catch(e){showToast('❌ خطأ: '+e.message,'err');}
 };
 
-window.changePass = async function() {
-  const curr=document.getElementById('currPass').value;
-  const np=document.getElementById('newPass').value;
-  const cp=document.getElementById('confPass').value;
-  if(curr!==SETTINGS.password){ showToast('❌ كلمة المرور الحالية غير صحيحة','err'); return; }
-  if(np.length<6){ showToast('❌ كلمة المرور قصيرة جداً','err'); return; }
-  if(np!==cp){ showToast('❌ كلمتا المرور غير متطابقتين','err'); return; }
+window.changePass=async function(){
+  const curr=document.getElementById('currPass').value,np=document.getElementById('newPass').value,cp=document.getElementById('confPass').value;
+  if(curr!==SETTINGS.password){showToast('❌ كلمة المرور الحالية غير صحيحة','err');return;}
+  if(np.length<6){showToast('❌ كلمة المرور قصيرة جداً','err');return;}
+  if(np!==cp){showToast('❌ كلمتا المرور غير متطابقتين','err');return;}
   SETTINGS.password=np;
-  try {
-    await sbPatchText('settings','id=eq.main',{password:np});
-    ['currPass','newPass','confPass'].forEach(id=>document.getElementById(id).value='');
-    showToast('✅ تم تغيير كلمة المرور');
-  } catch(e) { showToast('❌ خطأ: '+e.message,'err'); }
+  try{await sbPatchText('settings','id=eq.main',{password:np});['currPass','newPass','confPass'].forEach(id=>document.getElementById(id).value='');showToast('✅ تم تغيير كلمة المرور');}
+  catch(e){showToast('❌ خطأ: '+e.message,'err');}
 };
 
-window.clearAll = async function() {
-  try {
-    await fetch(`${SUPABASE_URL}/rest/v1/complaints?timestamp=gt.0`,{
-      method:'DELETE',
-      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
-    });
-    await loadComplaints();
-    showToast('🗑️ تم مسح جميع البيانات');
-  } catch(e) { showToast('❌ خطأ','err'); }
+window.clearAll=async function(){
+  try{
+    await fetch(`${SUPABASE_URL}/rest/v1/complaints?timestamp=gt.0`,{method:'DELETE',headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});
+    await loadComplaints();showToast('🗑️ تم مسح جميع البيانات');
+  }catch(e){showToast('❌ خطأ','err');}
 };
 
-// ═══ EXPORT ═══
-window.exportCSV = function() {
+window.exportCSV=function(){
   const headers=['الرقم المرجعي','الاسم','الصفة','البريد','النوع','القطاع','الموضوع','الأولوية','الحالة','التاريخ'];
   const rows=ALL_COMPLAINTS.map(c=>[c.ref,c.anon?'مجهول':c.name,c.role,c.anon?'-':c.email,c.type,c.sector,c.subject,c.priority,c.status,c.date]);
-  const csv='\uFEFF'+headers.join(',')+('\n')+rows.map(r=>r.map(v=>`"${v||''}"`).join(',')).join('\n');
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
-  a.download='complaints_'+Date.now()+'.csv'; a.click();
+  const csv='\uFEFF'+headers.join(',')+('\n')+rows.map(r=>r.map(v=>`"${v||''}"`) .join(',')).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='complaints_'+Date.now()+'.csv';a.click();
 };
 
 // ═══ HELPERS ═══
-function getStatusBadge(s) {
+function getStatusBadge(s){
   const map={'جديدة':'status-new','قيد المراجعة':'status-review','تمت المعالجة':'status-done','مغلقة':'status-closed'};
   const ico={'جديدة':'🆕','قيد المراجعة':'⏳','تمت المعالجة':'✅','مغلقة':'🔒'};
   return `<span class="status-badge ${map[s]||'status-new'}">${ico[s]||''} ${s}</span>`;
 }
-function getPriorityBadge(p) {
+function getPriorityBadge(p){
   const map={'عالية':'priority-high','متوسطة':'priority-medium','منخفضة':'priority-low'};
   const ico={'عالية':'🔴','متوسطة':'🟡','منخفضة':'🟢'};
   return `<span class="${map[p]||''}">${ico[p]||''} ${p}</span>`;
 }
-function updatePublicStats() {
+function updatePublicStats(){
   const c=ALL_COMPLAINTS;
-  document.getElementById('statTotal').textContent    = c.length;
-  document.getElementById('statResolved').textContent = c.filter(x=>x.status==='تمت المعالجة').length;
-  document.getElementById('statPending').textContent  = c.filter(x=>x.status==='قيد المراجعة'||x.status==='جديدة').length;
+  document.getElementById('statTotal').textContent=c.length;
+  document.getElementById('statResolved').textContent=c.filter(x=>x.status==='تمت المعالجة').length;
+  document.getElementById('statPending').textContent=c.filter(x=>x.status==='قيد المراجعة'||x.status==='جديدة').length;
 }
 let toastTimer;
-function showToast(msg,type='ok') {
+function showToast(msg,type='ok'){
   const t=document.getElementById('toast');
   t.textContent=msg;
   t.style.background=type==='err'?'linear-gradient(135deg,#2a0a0a,#350d0d)':'linear-gradient(135deg,#0a2a12,#0d3516)';
   t.style.color=type==='err'?'#e74c3c':'#52be80';
   t.style.borderColor=type==='err'?'rgba(231,76,60,0.4)':'rgba(39,174,96,0.4)';
-  t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer=setTimeout(()=>t.classList.remove('show'),3500);
+  t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),3500);
 }
 
 // ═══ START ═══
