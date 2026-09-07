@@ -499,7 +499,7 @@
       <h1>نظام الشكاوى والمقترحات</h1>
       <p>كلية الهندسة — جامعة المنصورة &nbsp;|&nbsp; Faculty of Engineering, Mansoura University</p>
     </div>
-    <div class="header-badge" onclick="showAdminLogin()">🔐 لوحة الإدارة</div>
+    <div class="header-badge" id="adminBadge" onclick="showAdminLogin()" style="display:none">🔐 لوحة الإدارة</div>
   </div>
 </header>
 
@@ -693,6 +693,9 @@
       <div style="text-align:center;margin-bottom:1.5rem">
         <div style="font-size:1.1rem;font-weight:800;color:var(--white)">لوحة إدارة النظام</div>
         <div style="font-size:0.8rem;color:var(--gray);margin-top:4px">كلية الهندسة — جامعة المنصورة</div>
+        <div style="font-size:0.75rem;color:rgba(231,76,60,0.8);margin-top:6px;background:rgba(231,76,60,0.08);border:1px solid rgba(231,76,60,0.2);border-radius:6px;padding:4px 10px">
+          🔒 3 محاولات خاطئة = تجميد 30 ثانية
+        </div>
       </div>
       <div class="form-group" style="margin-bottom:1rem">
         <label>🔑 كلمة المرور</label>
@@ -1119,11 +1122,29 @@ window.showAdminLogin=function(){
   document.getElementById('adminLoginView').classList.add('active');
   document.getElementById('publicNav').style.display='none';
 };
+let sessionTimer = null;
+function resetSessionTimer() {
+  if(sessionTimer) clearTimeout(sessionTimer);
+  if(!adminLoggedIn) return;
+  sessionTimer = setTimeout(()=>{
+    if(adminLoggedIn) {
+      adminLoggedIn = false;
+      document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+      document.getElementById('formView').classList.add('active');
+      document.getElementById('publicNav').style.display='';
+      showToast('⏳ تم تسجيل الخروج تلقائياً بعد 30 دقيقة عدم نشاط','err');
+    }
+  }, 30*60*1000); // 30 minutes
+}
+document.addEventListener('mousemove', resetSessionTimer);
+document.addEventListener('keydown', resetSessionTimer);
+
 function showAdminDash(){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById('adminView').classList.add('active');
   document.getElementById('publicNav').style.display='none';
   updateAdminCounters();renderSectorChart();renderDonut();renderRecentTable();
+  resetSessionTimer();
 }
 window.showAdminSub=function(id,navEl){
   document.querySelectorAll('.admin-sub-view').forEach(v=>v.classList.remove('active'));
@@ -1323,10 +1344,52 @@ window.trackComplaint=function(){
 };
 
 // ═══ ADMIN AUTH ═══
-window.adminLogin=function(){
-  const pass=document.getElementById('adminPass').value;
-  if(pass===SETTINGS.password){adminLoggedIn=true;document.getElementById('loginErr').classList.remove('show');document.getElementById('adminPass').value='';showAdminDash();}
-  else{document.getElementById('loginErr').classList.add('show');document.getElementById('adminPass').value='';}
+// ═══ SECURITY: Login attempts limiter ═══
+let loginAttempts = 0;
+let lockUntil = 0;
+
+async function hashPass(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+window.adminLogin = async function() {
+  // Check lockout
+  if(Date.now() < lockUntil) {
+    const secs = Math.ceil((lockUntil - Date.now()) / 1000);
+    document.getElementById('loginErr').textContent = `⏳ تم تجميد الدخول. انتظر ${secs} ثانية`;
+    document.getElementById('loginErr').classList.add('show');
+    return;
+  }
+  const pass = document.getElementById('adminPass').value;
+  const inputHash = await hashPass(pass);
+  const correctHash = await hashPass(SETTINGS.password);
+
+  if(inputHash === correctHash) {
+    loginAttempts = 0;
+    adminLoggedIn = true;
+    document.getElementById('loginErr').classList.remove('show');
+    document.getElementById('adminPass').value = '';
+    showAdminDash();
+  } else {
+    loginAttempts++;
+    document.getElementById('adminPass').value = '';
+    if(loginAttempts >= 3) {
+      lockUntil = Date.now() + 30000; // 30 seconds lockout
+      loginAttempts = 0;
+      document.getElementById('loginErr').textContent = '🔒 3 محاولات خاطئة — تم التجميد 30 ثانية';
+      document.getElementById('loginErr').classList.add('show');
+      // start countdown
+      let t = setInterval(()=>{
+        const s = Math.ceil((lockUntil-Date.now())/1000);
+        if(s<=0){clearInterval(t);document.getElementById('loginErr').textContent='❌ كلمة المرور غير صحيحة. حاول مرة أخرى.';return;}
+        document.getElementById('loginErr').textContent=`🔒 تم التجميد — انتظر ${s} ثانية`;
+      }, 1000);
+    } else {
+      document.getElementById('loginErr').textContent = `❌ كلمة المرور غير صحيحة. (${loginAttempts}/3 محاولات)`;
+      document.getElementById('loginErr').classList.add('show');
+    }
+  }
 };
 window.adminLogout=function(){
   adminLoggedIn=false;
@@ -1707,6 +1770,14 @@ function showToast(msg,type='ok'){
   t.style.borderColor=type==='err'?'rgba(231,76,60,0.4)':'rgba(39,174,96,0.4)';
   t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),3500);
 }
+
+// ═══ SECRET ADMIN ACCESS: Press Ctrl+Shift+A to show admin button ═══
+document.addEventListener('keydown', function(e) {
+  if(e.ctrlKey && e.shiftKey && e.key === 'A') {
+    const badge = document.getElementById('adminBadge');
+    if(badge) { badge.style.display = badge.style.display === 'none' ? 'block' : 'none'; }
+  }
+});
 
 // ═══ START ═══
 init();
