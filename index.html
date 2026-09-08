@@ -965,10 +965,15 @@
 <!-- ═══════════════════════════════════════════════════════════ -->
 <script>
 // ═══ SUPABASE CONFIG ═══
+// ⚠️ لازم تحط هنا المفتاح الجديد بعد ما تدوّره من Supabase Dashboard > Project Settings > API
+// ⚠️ المفتاح القديم كان مكشوف بالكامل في الكود، متستخدمهوش تاني أبدًا
 const SUPABASE_URL = "https://cafojuyjtigatwdoptpd.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhZm9qdXlqdGlnYXR3ZG9wdHBkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjM5MjQsImV4cCI6MjA5Mjg5OTkyNH0.C3mDJuvs73W-5pIlL3l60roPRDONPqQXTy4Lsjww8Ng";
+const SUPABASE_KEY = "PASTE_NEW_ROTATED_ANON_KEY_HERE";
+// رابط الـ Edge Function بعد نشرها (راجع DEPLOY-README.md)
+const EDGE_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/admin-api`;
 
-// ═══ FETCH HELPERS ═══
+// ═══ FETCH HELPERS (عمليات عامة مسموحة لأي زائر فقط: إضافة شكوى + قراءة الحقول المخصصة النشطة) ═══
+// هذول الاتنين بس هما اللي لسه بيستخدموا anon key مباشرة، وده مقصود ومظبوط بسياسات RLS
 async function sbGet(table, params='') {
   const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params}`, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' }
@@ -984,29 +989,6 @@ async function sbPost(table, data) {
   if(!r.ok) throw new Error(await r.text());
   return r.json();
 }
-async function sbPatch(table, id, data) {
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
-    method:'PATCH', headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'},
-    body: JSON.stringify(data)
-  });
-  if(!r.ok) throw new Error(await r.text());
-  return true;
-}
-async function sbPatchText(table, filter, data) {
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filter}`, {
-    method:'PATCH', headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'},
-    body: JSON.stringify(data)
-  });
-  if(!r.ok) throw new Error(await r.text());
-  return true;
-}
-async function sbDelete(table, id) {
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
-    method:'DELETE', headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
-  });
-  if(!r.ok) throw new Error(await r.text());
-  return true;
-}
 async function uploadFile(file) {
   const ext  = file.name.split('.').pop();
   const name = `${Date.now()}_${Math.random().toString(36).substr(2,8)}.${ext}`;
@@ -1018,9 +1000,27 @@ async function uploadFile(file) {
   return { url:`${SUPABASE_URL}/storage/v1/object/public/attachments/${name}`, name:file.name, type:file.type };
 }
 
+// ═══ API الآمن (كل عمليات الأدمن والبيانات الحساسة بتعدي من هنا فقط) ═══
+let ADMIN_TOKEN = null; // مبيتخزنش في localStorage، بيتمسح تلقائيًا لما التاب يتقفل
+
+async function callApi(action, payload={}, needsAuth=false) {
+  if(needsAuth && !ADMIN_TOKEN) throw new Error('محتاج تسجيل دخول');
+  const r = await fetch(EDGE_FUNCTION_URL, {
+    method:'POST',
+    headers:{'Content-Type':'application/json', ...(needsAuth?{'Authorization':'Bearer '+ADMIN_TOKEN}:{})},
+    body: JSON.stringify({ action, ...payload })
+  });
+  const data = await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(data.error || 'حصل خطأ في الاتصال بالسيرفر');
+  return data;
+}
+const publicApi = (action, payload) => callApi(action, payload, false);
+const adminApi  = (action, payload) => callApi(action, payload, true);
+
 // ═══ STATE ═══
+// ملاحظة أمنية: كلمة المرور اتشالت خالص من هنا. التحقق منها بيحصل في السيرفر فقط (Edge Function)
 let SETTINGS = {
-  password:'Eng#2026', college_name:'كلية الهندسة جامعة المنصورة',
+  college_name:'كلية الهندسة جامعة المنصورة',
   dean_name:'أ.د. شريف مسعد البدوي', email_general:'',
   sector_emails:{'قطاع عميد الكلية':'','قطاع شئون التعليم والطلاب':'','قطاع شئون الدراسات العليا والبحوث':'','قطاع شئون تنمية البيئة وخدمة المجتمع':'','العيادة الطبية':''}
 };
@@ -1038,8 +1038,8 @@ let reportPeriod    = 'week';
 async function init() {
   setFbStatus('loading','جارٍ الاتصال...');
   try {
-    await loadSettings();
-    await loadComplaints();
+    await loadPublicSettings();
+    await loadPublicStats();
     await loadCustomFields();
     setFbStatus('online','متصل بـ Supabase ✓');
     startPolling();
@@ -1055,28 +1055,53 @@ function setFbStatus(state, text) {
   dot.className='fb-dot '+state; span.textContent=text;
 }
 
+// بولينج خفيف: زائر عادي بيتابع بس العدّادات العامة (مش كل الشكاوى بأسماء وإيميلات)
+// الأدمن (لما يكون مسجل دخول) بيتابع بياناته الكاملة عن طريق الـ Edge Function المحمية
 function startPolling() {
   if(pollInterval) clearInterval(pollInterval);
   pollInterval = setInterval(async()=>{
-    try { await loadComplaints(); setFbStatus('online','متصل — '+ALL_COMPLAINTS.length+' شكوى'); }
+    try {
+      if(adminLoggedIn) { await loadComplaintsAdmin(); setFbStatus('online','متصل — '+ALL_COMPLAINTS.length+' شكوى'); }
+      else { await loadPublicStats(); setFbStatus('online','متصل بـ Supabase ✓'); }
+    }
     catch(e){ setFbStatus('offline','انقطع الاتصال'); }
   }, 12000);
 }
 
-async function loadSettings() {
+// إعدادات عامة غير حساسة فقط (اسم الكلية، اسم العميد، إيميل عام) — بدون كلمة مرور أو إيميلات القطاعات الداخلية
+async function loadPublicSettings() {
   try {
-    const rows = await sbGet('settings','id=eq.main');
-    if(rows&&rows.length>0) {
-      const s=rows[0];
-      SETTINGS={password:s.password||'Eng#2026',college_name:s.college_name||'كلية الهندسة جامعة المنصورة',
-        dean_name:s.dean_name||'أ.د. شريف مسعد البدوي',email_general:s.email_general||'',
-        sector_emails:s.sector_emails||{}};
-    }
+    const s = await publicApi('getPublicSettings');
+    SETTINGS.college_name = s.college_name || SETTINGS.college_name;
+    SETTINGS.dean_name = s.dean_name || SETTINGS.dean_name;
+    SETTINGS.email_general = s.email_general || '';
   } catch(e){ console.warn('Settings fallback'); }
 }
 
-async function loadComplaints() {
-  const rows = await sbGet('complaints','order=timestamp.desc&limit=1000');
+// إعدادات كاملة للأدمن فقط (تُستدعى بعد تسجيل الدخول)
+async function loadAdminSettings() {
+  try {
+    const s = await adminApi('getAdminSettings');
+    SETTINGS.college_name = s.college_name || SETTINGS.college_name;
+    SETTINGS.dean_name = s.dean_name || SETTINGS.dean_name;
+    SETTINGS.email_general = s.email_general || '';
+    SETTINGS.sector_emails = s.sector_emails || {};
+  } catch(e){ console.warn('Admin settings load failed'); }
+}
+
+// عدّادات عامة فقط (إجمالي / تمت المعالجة / قيد الانتظار) — بدون أي بيانات شخصية
+async function loadPublicStats() {
+  try {
+    const s = await publicApi('publicStats');
+    document.getElementById('statTotal').textContent = s.total ?? 0;
+    document.getElementById('statResolved').textContent = s.resolved ?? 0;
+    document.getElementById('statPending').textContent = s.pending ?? 0;
+  } catch(e){ console.warn('Stats load failed'); }
+}
+
+// بيانات الشكاوى الكاملة — للأدمن فقط، عن طريق التوكن الموقّع من الـ Edge Function
+async function loadComplaintsAdmin() {
+  const rows = await adminApi('listComplaints');
   ALL_COMPLAINTS=(rows||[]).map(r=>({
     id:r.id,ref:r.ref,name:r.name,realName:r.real_name,email:r.email,phone:r.phone,
     role:r.role,type:r.type,sector:r.sector,priority:r.priority,subject:r.subject,
@@ -1085,14 +1110,11 @@ async function loadComplaints() {
     adminAttachmentUrl:r.admin_attachment_url,adminAttachmentName:r.admin_attachment_name,
     customAnswers:r.custom_answers||{}
   }));
-  updatePublicStats();
-  if(adminLoggedIn){
-    updateAdminCounters();
-    document.getElementById('newBadge').textContent=ALL_COMPLAINTS.filter(c=>c.status==='جديدة').length;
-    if(document.getElementById('dashOverview').classList.contains('active')){renderSectorChart();renderDonut();renderRecentTable();}
-    if(document.getElementById('allComplaints').classList.contains('active')) renderTable();
-    if(document.getElementById('reportsView').classList.contains('active')) renderReport();
-  }
+  updateAdminCounters();
+  document.getElementById('newBadge').textContent=ALL_COMPLAINTS.filter(c=>c.status==='جديدة').length;
+  if(document.getElementById('dashOverview').classList.contains('active')){renderSectorChart();renderDonut();renderRecentTable();}
+  if(document.getElementById('allComplaints').classList.contains('active')) renderTable();
+  if(document.getElementById('reportsView').classList.contains('active')) renderReport();
 }
 
 async function loadCustomFields() {
@@ -1129,6 +1151,7 @@ function resetSessionTimer() {
   sessionTimer = setTimeout(()=>{
     if(adminLoggedIn) {
       adminLoggedIn = false;
+      ADMIN_TOKEN = null;
       document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
       document.getElementById('formView').classList.add('active');
       document.getElementById('publicNav').style.display='';
@@ -1139,11 +1162,12 @@ function resetSessionTimer() {
 document.addEventListener('mousemove', resetSessionTimer);
 document.addEventListener('keydown', resetSessionTimer);
 
-function showAdminDash(){
+async function showAdminDash(){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById('adminView').classList.add('active');
   document.getElementById('publicNav').style.display='none';
-  updateAdminCounters();renderSectorChart();renderDonut();renderRecentTable();
+  await loadAdminSettings();
+  await loadComplaintsAdmin();
   resetSessionTimer();
 }
 window.showAdminSub=function(id,navEl){
@@ -1301,7 +1325,7 @@ window.submitComplaint=async function(){
     document.getElementById('modalRef').innerHTML=`<small>الرقم المرجعي</small>${ref}`;
     document.getElementById('successModal').classList.add('show');
     resetForm();
-    await loadComplaints();
+    await loadPublicStats();
   }catch(e){
     console.error(e);showToast('❌ خطأ في الإرسال: '+(e.message||'تحقق من الاتصال'),'err');
   }finally{
@@ -1318,11 +1342,19 @@ window.goTrack=function(){
 };
 
 // ═══ TRACK ═══
-window.trackComplaint=function(){
+window.trackComplaint=async function(){
   const ref=document.getElementById('trackRef').value.trim().toUpperCase();
-  const c=ALL_COMPLAINTS.find(x=>x.ref===ref);
   const box=document.getElementById('trackResult');
-  if(!c){box.innerHTML=`<div style="text-align:center;color:#e74c3c;padding:1rem">❌ لم يتم العثور على شكوى بهذا الرقم.<br><small style="color:var(--gray)">تأكد من الرقم وحاول مرة أخرى</small></div>`;box.classList.add('show');return;}
+  if(!ref){return;}
+  box.innerHTML='<div style="text-align:center;color:var(--gray);padding:1rem">⏳ جارٍ البحث...</div>';
+  box.classList.add('show');
+  let row;
+  try{ row = await publicApi('trackComplaint', {ref}); }
+  catch(e){ box.innerHTML=`<div style="text-align:center;color:#e74c3c;padding:1rem">❌ حصل خطأ، حاول تاني</div>`; return; }
+  if(!row){box.innerHTML=`<div style="text-align:center;color:#e74c3c;padding:1rem">❌ لم يتم العثور على شكوى بهذا الرقم.<br><small style="color:var(--gray)">تأكد من الرقم وحاول مرة أخرى</small></div>`;box.classList.add('show');return;}
+  const c={ref:row.ref,subject:row.subject,type:row.type,sector:row.sector,priority:row.priority,
+    date:row.date,status:row.status,notes:row.notes,attachmentUrl:row.attachment_url,attachmentName:row.attachment_name,
+    adminAttachmentUrl:row.admin_attachment_url,adminAttachmentName:row.admin_attachment_name,customAnswers:row.custom_answers||{}};
   const attachHtml=c.attachmentUrl?`<div class="track-detail-row"><span class="lbl">📎 المرفق</span><span class="val"><a href="${c.attachmentUrl}" target="_blank" style="color:var(--gold-light);text-decoration:underline">📥 ${c.attachmentName||'عرض المرفق'}</a></span></div>`:'';
   const adminAttachHtml=c.adminAttachmentUrl?`<div class="track-detail-row"><span class="lbl">📎 مرفق الإدارة</span><span class="val"><a href="${c.adminAttachmentUrl}" target="_blank" style="color:#52be80;text-decoration:underline">📥 ${c.adminAttachmentName||'عرض ملف الإدارة'}</a></span></div>`:'';
   const customHtml=Object.entries(c.customAnswers||{}).map(([k,v])=>`<div class="track-detail-row"><span class="lbl">${k}</span><span class="val">${v}</span></div>`).join('');
@@ -1348,13 +1380,8 @@ window.trackComplaint=function(){
 let loginAttempts = 0;
 let lockUntil = 0;
 
-async function hashPass(str) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
-
 window.adminLogin = async function() {
-  // Check lockout
+  // Check lockout (حماية إضافية من جانب المتصفح، والحماية الحقيقية ضد المحاولات المتكررة موجودة كمان في الـ Edge Function نفسها)
   if(Date.now() < lockUntil) {
     const secs = Math.ceil((lockUntil - Date.now()) / 1000);
     document.getElementById('loginErr').textContent = `⏳ تم تجميد الدخول. انتظر ${secs} ثانية`;
@@ -1362,24 +1389,23 @@ window.adminLogin = async function() {
     return;
   }
   const pass = document.getElementById('adminPass').value;
-  const inputHash = await hashPass(pass);
-  const correctHash = await hashPass(SETTINGS.password);
+  document.getElementById('adminPass').value = '';
 
-  if(inputHash === correctHash) {
+  try {
+    // كلمة المرور بتتبعت للسيرفر يقارنها هناك، مفيش أي هاش أو مقارنة بتحصل في المتصفح
+    const res = await publicApi('login', { password: pass });
+    ADMIN_TOKEN = res.token;
     loginAttempts = 0;
     adminLoggedIn = true;
     document.getElementById('loginErr').classList.remove('show');
-    document.getElementById('adminPass').value = '';
-    showAdminDash();
-  } else {
+    await showAdminDash();
+  } catch(e) {
     loginAttempts++;
-    document.getElementById('adminPass').value = '';
     if(loginAttempts >= 3) {
       lockUntil = Date.now() + 30000; // 30 seconds lockout
       loginAttempts = 0;
       document.getElementById('loginErr').textContent = '🔒 3 محاولات خاطئة — تم التجميد 30 ثانية';
       document.getElementById('loginErr').classList.add('show');
-      // start countdown
       let t = setInterval(()=>{
         const s = Math.ceil((lockUntil-Date.now())/1000);
         if(s<=0){clearInterval(t);document.getElementById('loginErr').textContent='❌ كلمة المرور غير صحيحة. حاول مرة أخرى.';return;}
@@ -1393,6 +1419,7 @@ window.adminLogin = async function() {
 };
 window.adminLogout=function(){
   adminLoggedIn=false;
+  ADMIN_TOKEN=null;
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById('formView').classList.add('active');
   document.getElementById('publicNav').style.display='';
@@ -1525,14 +1552,14 @@ window.saveDetailStatus=async function(){
   try{
     const updateData={status:document.getElementById('detailStatusSelect').value,notes:document.getElementById('detailNotes').value};
     if(adminAttachmentUrl){updateData.admin_attachment_url=adminAttachmentUrl;updateData.admin_attachment_name=adminAttachmentName;}
-    await sbPatch('complaints',currentDetailId,updateData);
-    await loadComplaints();window.closeDetail();showToast('✅ تم حفظ التغييرات بنجاح');
+    await adminApi('patchComplaint',{id:currentDetailId,data:updateData});
+    await loadComplaintsAdmin();window.closeDetail();showToast('✅ تم حفظ التغييرات بنجاح');
   }catch(e){showToast('❌ خطأ في الحفظ: '+e.message,'err');}
 };
 
 window.delComplaint=async function(id){
   if(!confirm('هل أنت متأكد من حذف هذه الشكوى؟')) return;
-  try{await sbDelete('complaints',id);await loadComplaints();showToast('🗑️ تم حذف الشكوى');}
+  try{await adminApi('deleteComplaint',{id});await loadComplaintsAdmin();showToast('🗑️ تم حذف الشكوى');}
   catch(e){showToast('❌ خطأ في الحذف','err');}
 };
 
@@ -1648,7 +1675,7 @@ window.addCustomField=async function(){
   if(!label){showToast('⚠️ اكتب نص السؤال','err');return;}
   const options=optStr?optStr.split(',').map(s=>s.trim()).filter(Boolean):[];
   try{
-    await sbPost('custom_fields',{field_label:label,field_type:type,field_options:options,is_required:required,is_active:true,sort_order:CUSTOM_FIELDS.length});
+    await adminApi('addCustomField',{field_label:label,field_type:type,field_options:options,is_required:required,sort_order:CUSTOM_FIELDS.length});
     await loadCustomFields();renderFormBuilder();renderCustomFieldsInForm();
     document.getElementById('newFieldLabel').value='';document.getElementById('newFieldOptions').value='';document.getElementById('newFieldRequired').checked=false;
     showToast('✅ تم إضافة السؤال بنجاح');
@@ -1657,12 +1684,12 @@ window.addCustomField=async function(){
 
 window.deleteCustomField=async function(id){
   if(!confirm('حذف هذا الحقل؟')) return;
-  try{await sbDelete('custom_fields',id);await loadCustomFields();renderFormBuilder();renderCustomFieldsInForm();showToast('🗑️ تم حذف الحقل');}
+  try{await adminApi('deleteCustomField',{id});await loadCustomFields();renderFormBuilder();renderCustomFieldsInForm();showToast('🗑️ تم حذف الحقل');}
   catch(e){showToast('❌ خطأ','err');}
 };
 
 window.toggleCustomField=async function(id,active){
-  try{await sbPatch('custom_fields',id,{is_active:!active});await loadCustomFields();renderFormBuilder();renderCustomFieldsInForm();}
+  try{await adminApi('toggleCustomField',{id,is_active:!active});await loadCustomFields();renderFormBuilder();renderCustomFieldsInForm();}
   catch(e){showToast('❌ خطأ','err');}
 };
 
@@ -1708,7 +1735,7 @@ window.saveSettings=async function(){
   SETTINGS.college_name=document.getElementById('settCollegeName').value;
   SETTINGS.dean_name=document.getElementById('settDeanName').value;
   SETTINGS.email_general=document.getElementById('settEmailGeneral').value;
-  try{await sbPatchText('settings','id=eq.main',{college_name:SETTINGS.college_name,dean_name:SETTINGS.dean_name,email_general:SETTINGS.email_general});showToast('✅ تم حفظ الإعدادات');}
+  try{await adminApi('saveSettings',{college_name:SETTINGS.college_name,dean_name:SETTINGS.dean_name,email_general:SETTINGS.email_general});showToast('✅ تم حفظ الإعدادات');}
   catch(e){showToast('❌ خطأ: '+e.message,'err');}
 };
 
@@ -1716,24 +1743,26 @@ window.saveSectorEmails=async function(){
   const inputs=document.querySelectorAll('.email-sector-input');
   const emails={};inputs.forEach(el=>{if(el.dataset.sector)emails[el.dataset.sector]=el.value.trim();});
   SETTINGS.sector_emails=emails;
-  try{await sbPatchText('settings','id=eq.main',{sector_emails:emails});showToast('✅ تم حفظ إيميلات القطاعات');}
+  try{await adminApi('saveSectorEmails',{sector_emails:emails});showToast('✅ تم حفظ إيميلات القطاعات');}
   catch(e){showToast('❌ خطأ: '+e.message,'err');}
 };
 
 window.changePass=async function(){
   const curr=document.getElementById('currPass').value,np=document.getElementById('newPass').value,cp=document.getElementById('confPass').value;
-  if(curr!==SETTINGS.password){showToast('❌ كلمة المرور الحالية غير صحيحة','err');return;}
   if(np.length<6){showToast('❌ كلمة المرور قصيرة جداً','err');return;}
   if(np!==cp){showToast('❌ كلمتا المرور غير متطابقتين','err');return;}
-  SETTINGS.password=np;
-  try{await sbPatchText('settings','id=eq.main',{password:np});['currPass','newPass','confPass'].forEach(id=>document.getElementById(id).value='');showToast('✅ تم تغيير كلمة المرور');}
-  catch(e){showToast('❌ خطأ: '+e.message,'err');}
+  try{
+    // السيرفر هو اللي بيتحقق من كلمة المرور الحالية، مفيش أي كلمة مرور متخزنة أو بتتقارن في المتصفح
+    await adminApi('changePassword',{currentPassword:curr,newPassword:np});
+    ['currPass','newPass','confPass'].forEach(id=>document.getElementById(id).value='');
+    showToast('✅ تم تغيير كلمة المرور');
+  }catch(e){showToast('❌ '+(e.message||'كلمة المرور الحالية غير صحيحة'),'err');}
 };
 
 window.clearAll=async function(){
   try{
-    await fetch(`${SUPABASE_URL}/rest/v1/complaints?timestamp=gt.0`,{method:'DELETE',headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});
-    await loadComplaints();showToast('🗑️ تم مسح جميع البيانات');
+    await adminApi('clearAll',{});
+    await loadComplaintsAdmin();showToast('🗑️ تم مسح جميع البيانات');
   }catch(e){showToast('❌ خطأ','err');}
 };
 
@@ -1755,12 +1784,6 @@ function getPriorityBadge(p){
   const ico={'عالية':'🔴','متوسطة':'🟡','منخفضة':'🟢'};
   return `<span class="${map[p]||''}">${ico[p]||''} ${p}</span>`;
 }
-function updatePublicStats(){
-  const c=ALL_COMPLAINTS;
-  document.getElementById('statTotal').textContent=c.length;
-  document.getElementById('statResolved').textContent=c.filter(x=>x.status==='تمت المعالجة').length;
-  document.getElementById('statPending').textContent=c.filter(x=>x.status==='قيد المراجعة'||x.status==='جديدة').length;
-}
 let toastTimer;
 function showToast(msg,type='ok'){
   const t=document.getElementById('toast');
@@ -1771,39 +1794,27 @@ function showToast(msg,type='ok'){
   t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),3500);
 }
 
-// ═══ SECRET ADMIN ACCESS ═══
-// Method 1: Ctrl+Shift+A shortcut
+// ═══ ADMIN ACCESS ═══
+// Desktop: press Ctrl+Shift+A to reveal the admin badge, then click it.
 document.addEventListener('keydown', function(e) {
-  if(e.ctrlKey && e.shiftKey && (e.key === 'A' || e.key === 'a' || e.keyCode === 65)) {
-    e.preventDefault();
+  if(e.ctrlKey && e.shiftKey && e.key === 'A') {
     const badge = document.getElementById('adminBadge');
-    if(badge) {
-      badge.style.display = (badge.style.display === 'none' || badge.style.display === '') ? 'block' : 'none';
-    }
+    if(badge) { badge.style.display = badge.style.display === 'none' ? 'block' : 'none'; }
   }
 });
 
-// Method 2: Click logo 5 times quickly to reveal admin button
-let logoClicks = 0, logoTimer = null;
-document.addEventListener('DOMContentLoaded', function() {
-  const logo = document.querySelector('.header-logo');
-  if(logo) {
-    logo.style.cursor = 'pointer';
-    logo.addEventListener('click', function() {
-      logoClicks++;
-      if(logoTimer) clearTimeout(logoTimer);
-      logoTimer = setTimeout(() => { logoClicks = 0; }, 2000);
-      if(logoClicks >= 5) {
-        logoClicks = 0;
-        const badge = document.getElementById('adminBadge');
-        if(badge) badge.style.display = badge.style.display === 'none' ? 'block' : 'none';
-      }
-    });
-  }
-});
+// Mobile & desktop: open the site with #admin at the end of the URL (e.g. yoursite.com/#admin)
+// to jump straight to the login screen. Bookmark or save that link to your phone's home screen
+// for a one-tap way in. Security still comes from the password check on the server, not from
+// hiding this link, so this is safe to use.
+function checkAdminHash() {
+  if (window.location.hash === '#admin') { window.showAdminLogin(); }
+}
+window.addEventListener('hashchange', checkAdminHash);
 
 // ═══ START ═══
 init();
+checkAdminHash();
 </script>
 </body>
 </html>
